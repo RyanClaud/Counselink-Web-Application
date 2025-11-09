@@ -1,0 +1,48 @@
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm text-center h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Average Rating</h5>
+                <p class="display-4 fw-bold text-primary">{{#if stats.averageRating}}{{toFixed stats.averageRating 1}}{{else}}N/A{{/if}}</p>
+                <p class="text-muted">Based on {{stats.totalRatings}} ratings</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">All Feedback</h4>
+                <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+            <div class="card-body">
+                {{#if feedbacks.length}}
+                    {{#each feedbacks}}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <div class="star-rating-display">
+                                {{#each (times 5)}}
+                                    <i class="fas fa-star {{#if (gte ../rating this)}}filled{{/if}}"></i>
+                                {{/each}}
+                            </div>
+                            <span class="text-muted small">Session Date: {{this.Appointment.date_time}}</span>
+                        </div>
+                        <p class="mt-2 mb-0 fst-italic">"{{#if this.comment}}{{this.comment}}{{else}}No comment provided.{{/if}}"</p>
+                    </div>
+                    {{/each}}
+                {{else}}
+                    <p class="text-center text-muted">You have not received any feedback yet.</p>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.star-rating-display .fa-star {
+    color: #e4e5e9;
+    font-size: 1.2rem;
+}
+.star-rating-display .fa-star.filled {
+    color: #facc15;
+}
+</style>

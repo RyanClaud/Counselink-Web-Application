@@ -64,6 +64,10 @@
                                 <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
                             </div>
                             <div class="mb-3">
+                                <label for="student_id" class="form-label">Student ID</label>
+                                <input type="text" class="form-control" id="student_id" name="student_id" placeholder="e.g., MBC2025-0000" required>
+                            </div>
+                            <div class="mb-3">
                                 <label for="gender" class="form-label">Gender</label>
                                 <select class="form-select" id="gender" name="gender" required>
                                     <option value="" selected disabled>-- Select Gender --</option>

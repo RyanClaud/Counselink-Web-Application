@@ -1,0 +1,41 @@
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class="mb-0">Counselor Feedback & Ratings</h3>
+    </div>
+    <div class="card-body">
+        {{#if counselors.length}}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Counselor</th>
+                            <th class="text-center">Average Rating</th>
+                            <th class="text-center">Total Ratings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each counselors}}
+                        <tr>
+                            <td>{{this.profile_info.firstName}} {{this.profile_info.lastName}}</td>
+                            <td class="text-center">
+                                <span class="badge fs-6 {{#if (gte this.dataValues.averageRating 4)}}bg-success{{else if (gte this.dataValues.averageRating 3)}}bg-warning{{else}}bg-danger{{/if}}">
+                                    {{#if this.dataValues.averageRating}}{{toFixed this.dataValues.averageRating 2}}{{else}}N/A{{/if}}
+                                </span>
+                            </td>
+                            <td class="text-center">{{this.dataValues.totalRatings}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <p class="text-center text-muted">No feedback has been submitted yet.</p>
+        {{/if}}
+    </div>
+</div>
+
+<style>
+    .table td {
+        vertical-align: middle;
+    }
+</style>

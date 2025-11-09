@@ -7,8 +7,9 @@
     This file contains controllers for administrator-specific actions.
 */
 
-import { User } from '../models/index.js';
+import { User, Feedback } from '../models/index.js';
 import { Op } from 'sequelize';
+import sequelize from '../config/database.js';
 
 /**
  * Renders the user management page with a list of all users.
@@ -27,6 +28,40 @@ export const renderUserManagementPage = async (req, res) => {
     req.flash('error_msg', 'Failed to load user management page.');
     res.redirect('/dashboard');
   }
+};
+
+/**
+ * Renders the feedback overview page for admins.
+ */
+export const renderFeedbackOverview = async (req, res) => {
+    try {
+        const counselorsWithFeedback = await User.findAll({
+            where: { role: 'counselor' },
+            include: [{
+                model: Feedback,
+                as: 'receivedFeedback',
+                attributes: []
+            }],
+            attributes: [
+                'user_id',
+                'profile_info',
+                [sequelize.fn('AVG', sequelize.col('receivedFeedback.rating')), 'averageRating'],
+                [sequelize.fn('COUNT', sequelize.col('receivedFeedback.rating')), 'totalRatings']
+            ],
+            group: ['User.user_id'],
+            order: [[sequelize.literal('averageRating'), 'DESC NULLS LAST']],
+            subQuery: false
+        });
+
+        res.render('admin/feedback', {
+            title: 'Feedback Overview',
+            layout: 'layouts/main',
+            counselors: counselorsWithFeedback
+        });
+    } catch (error) {
+        console.error('Failed to load feedback overview:', error);
+        res.redirect('/dashboard');
+    }
 };
 
 /**

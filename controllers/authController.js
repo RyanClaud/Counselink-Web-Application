@@ -34,87 +34,106 @@ export const loginPage = (req, res) => res.render("login", { title: "Login" });
 export const registerPage = (req, res) => res.render("register", { title: "Register" });
 export const forgotPasswordPage = (req, res) => res.render("forgotpassword", { title: "Forgot Password" });
 
-export const dashboardPage = (req, res) => {
-  (async () => {
-    try {
-      let appointments = [];
-      if (req.user.role === 'student') {
-        const allAppointments = await Appointment.findAll({ 
-          where: { student_id: req.user.user_id }, 
-          include: 'counselor', 
-          order: [['date_time', 'DESC']] 
-        });
+export const dashboardPage = async (req, res) => {
+  try {
+    if (req.user.role === 'student') {
+      // Use a direct query for maximum reliability.
+      const allAppointments = await Appointment.findAll({
+        where: { student_id: req.user.user_id },
+        include: ['counselor', 'Feedback'],
+        order: [['date_time', 'DESC']]
+      }); 
 
-        const stats = {
-          pending: allAppointments.filter(a => a.status === 'pending').length,
-          approved: allAppointments.filter(a => a.status === 'approved').length,
-          completed: allAppointments.filter(a => a.status === 'completed').length,
-        };
+      // Use direct database queries for stats for maximum reliability
+      const pendingCount = await Appointment.count({ where: { student_id: req.user.user_id, status: 'pending' } });
+      const approvedCount = await Appointment.count({ where: { student_id: req.user.user_id, status: 'approved' } });
+      const completedCount = await Appointment.count({ where: { student_id: req.user.user_id, status: 'completed' } });
 
-        return res.render("dashboard", { title: "Dashboard", user: req.user, appointments: allAppointments, stats, layout: 'layouts/main' });
-      }
-      
-      if (req.user.role === 'admin') {
-        const studentCount = await User.count({ where: { role: 'student' } });
-        const counselorCount = await User.count({ where: { role: 'counselor' } });
-        const appointmentCount = await Appointment.count();
-        const pendingCount = await Appointment.count({ where: { status: 'pending' } });
-        const recentAppointments = await Appointment.findAll({
-          limit: 10,
-          order: [['date_time', 'DESC']],
-          include: ['student', 'counselor']
-        });
+      const stats = {
+        pending: pendingCount,
+        approved: approvedCount,
+        completed: completedCount,
+      };
 
-        // --- Data for Charts ---
-        const appointmentStatusData = await Appointment.findAll({
-            attributes: ['status', [sequelize.fn('COUNT', sequelize.col('status')), 'count']],
-            group: ['status']
-        });
-
-        const appointmentsWithStudentGender = await Appointment.findAll({
-            include: [{
-                model: User,
-                as: 'student',
-                attributes: ['profile_info'],
-                required: true // Ensures we only get appointments with students
-            }]
-        });
-
-        const genderCounts = appointmentsWithStudentGender.reduce((acc, appt) => {
-            const gender = appt.student?.profile_info?.gender || 'Unknown';
-            acc[gender] = (acc[gender] || 0) + 1;
-            return acc;
-        }, {});
-
-        const chartData = {
-            appointmentStatus: {
-                labels: appointmentStatusData.map(item => item.status),
-                data: appointmentStatusData.map(item => item.get('count'))
-            },
-            studentGender: {
-                labels: Object.keys(genderCounts),
-                data: Object.values(genderCounts)
-            }
-        };
-
-        return res.render("dashboard", { title: "Admin Dashboard", user: req.user, stats: { studentCount, counselorCount, appointmentCount, pendingCount }, recentAppointments, chartData, layout: 'layouts/main' });
-      }
-
-      if (req.user.role === 'counselor') {
-        const appointments = await Appointment.findAll({
-          where: { counselor_id: req.user.user_id },
-          include: 'student',
-          order: [['date_time', 'DESC']]
-        });
-        return res.render("dashboard", { title: "Counselor Dashboard", user: req.user, appointments, layout: 'layouts/main' });
-      }
-
-      res.render("dashboard", { title: "Dashboard", user: req.user, layout: 'layouts/main' });
-    } catch (error) {
-      console.error(error);
-      res.render("dashboard", { title: "Dashboard", user: req.user, appointments: [], layout: 'layouts/main' });
+      return res.render("dashboard", { title: "Dashboard", user: req.user, appointments: allAppointments, stats, layout: 'layouts/main' });
     }
-  })();
+    
+    if (req.user.role === 'admin') {
+      const studentCount = await User.count({ where: { role: 'student' } });
+      const counselorCount = await User.count({ where: { role: 'counselor' } });
+      const appointmentCount = await Appointment.count();
+      const pendingCount = await Appointment.count({ where: { status: 'pending' } });
+      const recentAppointments = await Appointment.findAll({
+        limit: 10,
+        order: [['date_time', 'DESC']],
+        include: ['student', 'counselor']
+      });
+
+      // --- Data for Charts ---
+      const appointmentStatusData = await Appointment.findAll({
+          attributes: ['status', [sequelize.fn('COUNT', sequelize.col('status')), 'count']],
+          group: ['status']
+      });
+
+      const appointmentsWithStudentGender = await Appointment.findAll({
+          include: [{
+              model: User,
+              as: 'student',
+              attributes: ['profile_info'],
+              required: true // Ensures we only get appointments with students
+          }]
+      });
+
+      const genderCounts = appointmentsWithStudentGender.reduce((acc, appt) => {
+          const gender = appt.student?.profile_info?.gender || 'Unknown';
+          acc[gender] = (acc[gender] || 0) + 1;
+          return acc;
+      }, {});
+
+      const chartData = {
+          appointmentStatus: {
+              labels: appointmentStatusData.map(item => item.status),
+              data: appointmentStatusData.map(item => item.get('count'))
+          },
+          studentGender: {
+              labels: Object.keys(genderCounts),
+              data: Object.values(genderCounts)
+          }
+      };
+
+      return res.render("dashboard", { title: "Admin Dashboard", user: req.user, stats: { studentCount, counselorCount, appointmentCount, pendingCount }, recentAppointments, chartData, layout: 'layouts/main' });
+    }
+
+    if (req.user.role === 'counselor') {
+      const allAppointments = await Appointment.findAll({
+        where: { counselor_id: req.user.user_id },
+        include: 'student',
+        order: [['date_time', 'DESC']]
+      });
+
+      // Calculate stats for the counselor's dashboard
+      const stats = {
+        pending: allAppointments.filter(a => a.status === 'pending').length,
+        upcoming: allAppointments.filter(a => a.status === 'approved' && new Date(a.date_time) > new Date()).length,
+        completed: allAppointments.filter(a => a.status === 'completed').length
+      };
+
+      return res.render("dashboard", { 
+        title: "Counselor Dashboard", 
+        user: req.user, 
+        appointments: allAppointments, 
+        stats, 
+        layout: 'layouts/main' 
+      });
+    }
+
+    // Fallback for any other role or if no specific dashboard is defined
+    res.render("dashboard", { title: "Dashboard", user: req.user, layout: 'layouts/main' });
+  } catch (error) {
+    console.error("Dashboard Error:", error);
+    req.flash('error_msg', 'Could not load the dashboard.');
+    res.render("dashboard", { title: "Dashboard", user: req.user, appointments: [], layout: 'layouts/main' });
+  }
 };
 
 export const loginUser = async (req, res) => {
@@ -208,7 +227,7 @@ export const registerUser = async (req, res) => {
       req.flash('error_msg', errorMessages);
       return res.redirect('/register');
     }
-    const { firstName, lastName, email, password, gender, terms_agreed, role = 'student' } = req.body;
+    const { firstName, lastName, email, student_id, password, gender, terms_agreed, role = 'student' } = req.body;
 
     if (terms_agreed !== 'on') {
         req.flash('error_msg', 'You must agree to the Terms and Conditions to create an account.');
@@ -230,7 +249,8 @@ export const registerUser = async (req, res) => {
       profile_info: {
         firstName,
         lastName,
-        gender
+        gender,
+        student_id
       }
     });
 

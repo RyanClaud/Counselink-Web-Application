@@ -1,4 +1,4 @@
-import { Appointment, CounselingRecord, User } from '../models/index.js';
+import { Appointment, CounselingRecord, User, Notification } from '../models/index.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
 
 /**
@@ -69,6 +69,19 @@ export const saveRecord = async (req, res) => {
         session_notes: encryptedNotes,
         progress_tracking
       });
+    }
+
+    // --- Notify the Student about Progress Tracking Notes ---
+    // If progress tracking notes were added, send a notification.
+    if (progress_tracking && progress_tracking.trim() !== '') {
+      // 1. Create a notification record in the database
+      const notification = await Notification.create({
+          user_id: appointment.student_id,
+          message: `Your counselor left a progress note: "${progress_tracking}"`
+      });
+
+      // 2. Emit a real-time notification to the student's browser
+      req.io.to(`user-${appointment.student_id}`).emit('new-notification', { message: notification.message });
     }
 
     req.flash('success_msg', 'Counseling notes saved successfully.');

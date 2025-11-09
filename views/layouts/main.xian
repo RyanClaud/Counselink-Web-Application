@@ -120,14 +120,13 @@
                 {{!-- Student Menu --}}
                 {{#if (eq user.role 'student')}}
                     <a class="nav-link active" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
-                    <a class="nav-link" href="/dashboard"><i class="fas fa-calendar-check"></i> My Appointments</a>
                     <a class="nav-link" href="/settings"><i class="fas fa-cog"></i> Settings</a>
                 {{/if}}
 
                 {{!-- Counselor Menu --}}
                 {{#if (eq user.role 'counselor')}}
                     <a class="nav-link active" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
-                    <a class="nav-link" href="/dashboard"><i class="fas fa-calendar-alt"></i> Appointments</a>
+                    <a class="nav-link" href="/feedback/my-feedback"><i class="fas fa-star"></i> Students Feedback</a>
                     <a class="nav-link" href="/settings"><i class="fas fa-cog"></i> Settings</a>
                 {{/if}}
 

@@ -89,6 +89,40 @@ hbs.registerHelper('json', function(context) {
     return JSON.stringify(context);
 });
 
+// Register logical and comparison helpers
+hbs.registerHelper('and', function() {
+    return Array.prototype.slice.call(arguments, 0, -1).every(Boolean);
+});
+
+hbs.registerHelper('not', function(value) {
+    return !value;
+});
+
+hbs.registerHelper('gte', function (a, b) {
+    return a >= b;
+});
+
+// Register formatting and iteration helpers
+hbs.registerHelper('toFixed', function (number, digits) {
+    return Number(number).toFixed(digits);
+});
+
+hbs.registerHelper('times', function (n, block) {
+    // If used as a block helper: {{#times 5}}...{{/times}}
+    if (block && block.fn) {
+        let accum = '';
+        for (let i = 1; i <= n; ++i) {
+            accum += block.fn(i);
+        }
+        return accum;
+    }
+    // If used as a subexpression: {{#each (times 5)}}
+    const result = [];
+    for (let i = 1; i <= n; ++i) {
+        result.push(i);
+    }
+    return result;
+});
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "xian");

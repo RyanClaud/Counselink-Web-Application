@@ -40,11 +40,15 @@ import {
 import {
     renderNewAppointmentPage,
     createAppointment,
-    approveAppointment
+    approveAppointment,
+    completeAppointment,
+    renderFeedbackPage,
+    submitFeedback
 } from "../controllers/appointmentController.js";
 import {
     renderUserManagementPage,
     deleteUser,
+    renderFeedbackOverview,
     unlockUser,
     renderAddUserPage,
     createUser
@@ -59,7 +63,8 @@ import {
 import {
     renderSettingsPage,
     updateProfile,
-    changePassword
+    changePassword,
+    renderMyFeedbackPage
 } from "../controllers/userController.js";
 import {
     markNotificationsAsRead
@@ -83,6 +88,7 @@ router.get("/dashboard", protect(), loadUserNotifications, dashboardPage);
 // Settings routes (protected)
 router.get("/settings", protect(), loadUserNotifications, renderSettingsPage);
 router.post("/settings/profile", protect(), updateProfile);
+router.get("/feedback/my-feedback", protect(['counselor']), renderMyFeedbackPage);
 router.post("/settings/password", protect(), changePassword);
 
 // Notification routes (protected)
@@ -92,6 +98,11 @@ router.post("/notifications/mark-read", protect(), markNotificationsAsRead);
 router.get("/appointments/new", protect(['student']), renderNewAppointmentPage);
 router.post("/appointments", protect(['student']), createAppointment);
 router.get("/appointments/:id/approve", protect(['counselor']), approveAppointment);
+router.get("/appointments/:id/complete", protect(['counselor']), completeAppointment);
+
+// Feedback routes (protected)
+router.get("/feedback/:appointment_id/new", protect(['student']), renderFeedbackPage);
+router.post("/feedback/:appointment_id", protect(['student']), submitFeedback);
 
 // Counseling Record routes (protected)
 router.get("/records/:appointment_id/edit", protect(['counselor', 'admin']), renderRecordPage);
@@ -101,6 +112,7 @@ router.post("/records/:appointment_id", protect(['counselor']), saveRecord);
 router.get("/admin/users", protect(['admin']), loadUserNotifications, renderUserManagementPage);
 router.post("/admin/users/:id/delete", protect(['admin']), deleteUser);
 router.post("/admin/users/:id/unlock", protect(['admin']), unlockUser);
+router.get("/admin/feedback", protect(['admin']), renderFeedbackOverview);
 router.get("/admin/users/add", protect(['admin']), renderAddUserPage);
 router.post("/admin/users/add", protect(['admin']), createUser);
 router.get("/reports/appointments", protect(['admin']), generateAppointmentReport);

@@ -61,7 +61,7 @@
                         <div class="col-lg-6 mb-2 mb-lg-0">
                             <p class="mb-0 fst-italic">"{{this.reason}}"</p>
                         </div>
-                        <div class="col-lg-2 text-lg-end">
+                        <div class="col-lg-2 text-lg-end d-flex flex-column align-items-lg-end">
                             <span class="badge fs-6 text-capitalize
                                 {{#if (eq this.status 'pending')}}bg-warning{{/if}}
                                 {{#if (eq this.status 'approved')}}bg-success{{/if}}
@@ -69,6 +69,9 @@
                                 {{#if (eq this.status 'canceled')}}bg-danger{{/if}}">
                                 {{this.status}}
                             </span>
+                            {{#if (and (eq this.status 'completed') (not this.Feedback))}}
+                                <a href="/feedback/{{this.appointment_id}}/new" class="btn btn-link btn-sm p-0 mt-1">Leave Feedback</a>
+                            {{/if}}
                         </div>
                     </div>
                 </div>
@@ -86,8 +89,45 @@
 
     {{!-- Counselor Dashboard --}}
     {{#if (eq user.role 'counselor')}}
-        <div class="card">
-            <div class="card-header">
+        <!-- Stat Cards for Counselor -->
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-hourglass-half fa-2x text-warning me-3"></i>
+                        <div>
+                            <h4 class="card-title text-warning mb-0 fw-bold">{{stats.pending}}</h4>
+                            <p class="card-text text-muted">Pending Requests</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-calendar-check fa-2x text-success me-3"></i>
+                        <div>
+                            <h4 class="card-title text-success mb-0 fw-bold">{{stats.upcoming}}</h4>
+                            <p class="card-text text-muted">Upcoming Sessions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-12 mb-3">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-2x text-info me-3"></i>
+                        <div>
+                            <h4 class="card-title text-info mb-0 fw-bold">{{stats.completed}}</h4>
+                            <p class="card-text text-muted">Completed Sessions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-white">
                 <h4 class="mb-0">Incoming Appointment Requests</h4>
             </div>
             <div class="card-body">

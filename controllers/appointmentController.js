@@ -1,4 +1,4 @@
-import { Appointment, User, Notification } from '../models/index.js';
+import { Appointment, User, Notification, Feedback } from '../models/index.js';
 import { Op } from 'sequelize';
 
 /**
@@ -21,11 +21,72 @@ export const renderNewAppointmentPage = async (req, res) => {
 };
 
 /**
+ * Renders the feedback form for a completed appointment.
+ */
+export const renderFeedbackPage = async (req, res) => {
+    try {
+        const { appointment_id } = req.params;
+        const appointment = await Appointment.findOne({
+            where: {
+                appointment_id,
+                student_id: req.user.user_id,
+                status: 'completed'
+            },
+            include: ['counselor']
+        });
+
+        if (!appointment) {
+            req.flash('error_msg', 'Appointment not found or not completed.');
+            return res.redirect('/dashboard');
+        }
+
+        res.render('feedback/new', {
+            title: 'Leave Feedback',
+            layout: 'layouts/main',
+            appointment
+        });
+    } catch (error) {
+        console.error('Failed to load feedback page:', error);
+        req.flash('error_msg', 'Could not load feedback page.');
+        res.redirect('/dashboard');
+    }
+};
+
+/**
+ * Submits feedback for an appointment.
+ */
+export const submitFeedback = async (req, res) => {
+    try {
+        const { appointment_id } = req.params;
+        const { rating, comment } = req.body;
+        const student_id = req.user.user_id;
+
+        const appointment = await Appointment.findByPk(appointment_id);
+
+        await Feedback.create({
+            appointment_id,
+            student_id,
+            counselor_id: appointment.counselor_id,
+            rating,
+            comment
+        });
+
+        req.flash('success_msg', 'Thank you for your feedback!');
+        res.redirect('/dashboard');
+    } catch (error) {
+        console.error('Failed to submit feedback:', error);
+        req.flash('error_msg', 'Failed to submit feedback. You may have already left feedback for this session.');
+        res.redirect('/dashboard');
+    }
+};
+
+/**
  * Handles the creation of a new appointment.
  */
 export const createAppointment = async (req, res) => {
   try {
-    const { counselor_id, date_time, reason } = req.body;
+    const { date_time, reason } = req.body;
+    const counselor_id = parseInt(req.body.counselor_id, 10); // Ensure counselor_id is an integer from the start
     const student_id = req.user.user_id; // from protect middleware
 
     if (!counselor_id || !date_time || !reason) {
@@ -109,7 +170,7 @@ export const approveAppointment = async (req, res) => {
     // Create a notification for the student
     const notification = await Notification.create({
       user_id: appointment.student_id,
-      message: `Your appointment for ${new Date(appointment.date_time).toLocaleString()} has been approved.`
+      message: `Your appointment for ${appointment.date_time.toLocaleString()} has been approved.`
     });
 
     // Emit a real-time notification to the student
@@ -122,4 +183,41 @@ export const approveAppointment = async (req, res) => {
     req.flash('error_msg', 'Failed to approve appointment.');
     res.redirect('/dashboard');
   }
+};
+
+/**
+ * Marks an appointment as 'completed'.
+ * Accessible only by the assigned counselor for an approved appointment.
+ */
+export const completeAppointment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const counselor_id = req.user.user_id;
+
+        const appointment = await Appointment.findOne({
+            where: { appointment_id: id, counselor_id }
+        });
+
+        if (!appointment || appointment.status !== 'approved') {
+            req.flash('error_msg', 'Appointment not found or cannot be completed.');
+            return res.redirect('/dashboard');
+        }
+
+        appointment.status = 'completed';
+        await appointment.save();
+
+        // Notify the student that the session is complete and they can leave feedback
+        const notification = await Notification.create({
+            user_id: appointment.student_id,
+            message: `Your session on ${appointment.date_time.toLocaleString()} is now complete. You can now leave feedback.`
+        });
+        req.io.to(`user-${appointment.student_id}`).emit('new-notification', { message: notification.message });
+
+        req.flash('success_msg', 'Session marked as complete.');
+        res.redirect('/dashboard');
+    } catch (error) {
+        console.error('Failed to complete appointment:', error);
+        req.flash('error_msg', 'Failed to complete the appointment.');
+        res.redirect('/dashboard');
+    }
 };

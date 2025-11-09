@@ -28,7 +28,10 @@
 
                         <div class="d-flex justify-content-end">
                             <a href="/dashboard" class="btn btn-secondary me-2">Back to Dashboard</a>
-                            <button type="submit" class="btn btn-primary">Save Notes</button>
+                            {{#if (eq appointment.status 'approved')}}
+                                <a href="/appointments/{{appointment.appointment_id}}/complete" class="btn btn-success me-2" onclick="return confirm('Are you sure you want to mark this session as complete? This will allow the student to leave feedback.');">Complete Session</a>
+                            {{/if}}
+                            <button type="submit" class="btn btn-primary">Save/Update Notes</button>
                         </div>
                     </form>
                 </div>

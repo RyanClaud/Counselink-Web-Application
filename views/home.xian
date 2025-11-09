@@ -13,7 +13,10 @@
             font-family: 'Poppins', sans-serif;
         }
         .hero-section {
-            background-color: #f8f9fa;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://www.elcn.org.uk/wp-content/uploads/2024/03/AdobeStock_632553572-scaled-e1711118950475.jpeg');
+            background-size: cover;
+            background-position: center;
+            color: white;
         }
         .feature-icon {
             display: inline-flex;
@@ -85,15 +88,12 @@
 
     <!-- Hero Section -->
     <header class="hero-section">
-        <div class="container col-xxl-8 px-4 py-5">
-            <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
-                <div class="col-10 col-sm-8 col-lg-6">
-                    <img src="https://www.elcn.org.uk/wp-content/uploads/2024/03/AdobeStock_632553572-scaled-e1711118950475.jpeg" class="d-block mx-lg-auto img-fluid rounded-3 shadow-lg" alt="Supportive counseling session" loading="lazy">
-                </div>
-                <div class="col-lg-6">
-                    <h1 class="display-5 fw-bold lh-1 mb-3">Your Confidential Path to Mental Wellness</h1>
-                    <p class="lead">Securely connect with professional counselors and manage your appointments online. CounseLink is designed with your privacy and well-being in mind.</p>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+        <div class="container px-4 py-5 text-center">
+            <div class="py-5">
+                <h1 class="display-4 fw-bold">Your Confidential Path to Mental Wellness</h1>
+                <div class="col-lg-8 mx-auto">
+                    <p class="fs-5 mb-4">Securely connect with professional counselors and manage your appointments online. CounseLink is designed with your privacy and well-being in mind.</p>
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                         <a href="/login" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
     <section class="py-5 bg-white fade-in-section">
         <div class="container text-center">
             <h2 class="fw-bold">Expert care for every mind</h2>
-            <p class="lead text-muted mb-4">Our licensed therapists and psychiatric providers offer personalized care for nearly a hundred mental health issues and treatment approaches.</p>
+            <p class="lead text-muted mb-4">Our dedicated guidance personnel from Mindoro State University offer personalized care and support for various mental health concerns.</p>
             <div class="d-flex flex-wrap justify-content-center gap-2">
                 <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">ADHD</span>
                 <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Anger</span>

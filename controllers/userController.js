@@ -1,6 +1,7 @@
-import { User } from '../models/index.js';
+import { User, Feedback, Appointment } from '../models/index.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import sequelize from '../config/database.js';
 
 /**
  * Renders the user settings page.
@@ -11,6 +12,41 @@ export const renderSettingsPage = (req, res) => {
         user: req.user,
         layout: 'layouts/main'
     });
+};
+
+/**
+ * Renders the feedback page for a counselor.
+ */
+export const renderMyFeedbackPage = async (req, res) => {
+    try {
+        const counselor_id = req.user.user_id;
+
+        const feedbacks = await Feedback.findAll({
+            where: { counselor_id },
+            include: [Appointment], // Use the model directly for a more robust include
+            order: [['createdAt', 'DESC']]
+        });
+
+        const stats = await Feedback.findOne({
+            where: { counselor_id },
+            attributes: [
+                [sequelize.fn('AVG', sequelize.col('rating')), 'averageRating'],
+                [sequelize.fn('COUNT', sequelize.col('rating')), 'totalRatings']
+            ],
+            raw: true
+        });
+
+        res.render('feedback/counselor-view', {
+            title: 'My Feedback',
+            layout: 'layouts/main',
+            feedbacks,
+            stats
+        });
+    } catch (error) {
+        console.error('Failed to load feedback page:', error);
+        req.flash('error_msg', 'Could not load feedback page.');
+        res.redirect('/dashboard');
+    }
 };
 
 /**
@@ -26,13 +62,17 @@ export const updateProfile = async (req, res) => {
             return res.redirect('/settings');
         }
 
-        // Update profile_info, preserving other potential fields like student_id
-        user.profile_info = { ...user.profile_info, firstName, lastName, gender };
+        // Ensure profile_info is an object before updating
+        const newProfileInfo = { ...(user.profile_info || {}) };
+        newProfileInfo.firstName = firstName;
+        newProfileInfo.lastName = lastName;
+        newProfileInfo.gender = gender;
 
         // Only update student_id if the user is a student
         if (user.role === 'student') {
-            user.profile_info.student_id = student_id;
+            newProfileInfo.student_id = student_id;
         }
+        user.profile_info = newProfileInfo;
         await user.save();
 
         // --- Refresh the JWT with updated user info ---
