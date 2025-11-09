@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} | CounseLink</title>
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bs-primary: #3B82F6;
+            --bs-primary-rgb: 59, 130, 246;
+            --bs-secondary: #6c757d; /* Default gray for secondary buttons */
+            --bs-success: #10B981;
+            --bs-success-rgb: 16, 185, 129;
+            --bs-warning: #FACC15;
+            --bs-warning-rgb: 250, 204, 21;
+            --counselink-bg: #F9FAFB;
+            --counselink-text: #1E293B;
+            --counselink-muted: #94A3B8;
+        }
+
+        [data-bs-theme="dark"] {
+            --bs-primary: #3B82F6;
+            --bs-primary-rgb: 59, 130, 246;
+            --bs-body-bg: #111827; /* Dark Slate Gray */
+            --bs-body-color: #D1D5DB; /* Light Gray Text */
+            --counselink-bg: #111827;
+            --counselink-text: #D1D5DB;
+            --counselink-muted: #6B7280;
+        }
+
+        [data-bs-theme="dark"] .bg-white {
+            background-color: #1F2937 !important; /* Darker Card BG */
+        }
+        [data-bs-theme="dark"] .card {
+            background-color: #1F2937;
+        }
+        [data-bs-theme="dark"] .text-dark {
+            color: #F9FAFB !important;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--counselink-bg);
+            color: var(--counselink-text);
+        }
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            border-radius: 0.5rem; /* 8px */
+        }
+        .btn-primary {
+            --bs-btn-bg: var(--bs-primary);
+            --bs-btn-border-color: var(--bs-primary);
+            --bs-btn-hover-bg: #2563EB;
+            --bs-btn-hover-border-color: #2563EB;
+        }
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            transition: margin-left .3s;
+        }
+        .sidebar .nav-link {
+            color: var(--counselink-muted);
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .sidebar .nav-link:hover {
+            color: var(--bs-primary);
+            background-color: rgba(var(--bs-primary-rgb), 0.05);
+        }
+        .sidebar .nav-link.active {
+            color: var(--bs-primary);
+            border-left-color: var(--bs-primary);
+            background-color: rgba(var(--bs-primary-rgb), 0.1);
+        }
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+        }
+        .main-content {
+            flex: 1;
+            transition: margin-left .3s;
+        }
+        .top-nav {
+            z-index: 1020; /* Above sidebar */
+        }
+        .notification-bell {
+            display: inline-block;
+            padding: 0.5rem 0.75rem;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+        .notification-bell:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.1);
+        }
+        #theme-toggle-btn {
+            cursor: pointer;
+        }
+    </style>
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar bg-white shadow-sm p-3">
+            <div class="d-flex align-items-center mb-4 p-2">
+                <a class="navbar-brand" href="/dashboard">
+                    <img src="/logo/counselink_logo.png" alt="CounseLink Logo" height="50">
+                </a>
+            </div>
+            <nav class="nav flex-column">
+                {{!-- Student Menu --}}
+                {{#if (eq user.role 'student')}}
+                    <a class="nav-link active" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                    <a class="nav-link" href="/dashboard"><i class="fas fa-calendar-check"></i> My Appointments</a>
+                    <a class="nav-link" href="/settings"><i class="fas fa-cog"></i> Settings</a>
+                {{/if}}
+
+                {{!-- Counselor Menu --}}
+                {{#if (eq user.role 'counselor')}}
+                    <a class="nav-link active" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                    <a class="nav-link" href="/dashboard"><i class="fas fa-calendar-alt"></i> Appointments</a>
+                    <a class="nav-link" href="/settings"><i class="fas fa-cog"></i> Settings</a>
+                {{/if}}
+
+                {{!-- Admin Menu --}}
+                {{#if (eq user.role 'admin')}}
+                    <a class="nav-link active" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                    <a class="nav-link" href="/admin/users"><i class="fas fa-users-cog"></i> User Management</a>
+                    <a class="nav-link" href="/settings"><i class="fas fa-cog"></i> System Settings</a>
+                {{/if}}
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top top-nav">
+                <div class="container-fluid">
+                    <!-- Mobile sidebar toggle -->
+                    <button class="btn btn-primary d-lg-none" type="button" id="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="ms-auto d-flex align-items-center">
+                        <!-- Notifications Dropdown -->
+                        <div class="dropdown me-3">
+                            <a class="notification-bell position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                                <img src="/logo/notification_icon.png" alt="Notifications" height="28">
+                                {{#if notifications.length}}
+                                    <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" style="font-size: 0.6em;">{{notifications.length}}</span>
+                                {{/if}}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width: 320px;">
+                                <li class="px-3 py-2 fw-bold">Notifications</li>
+                                <li><hr class="dropdown-divider"></li>
+                                {{#if notifications.length}}
+                                    {{#each notifications}}
+                                    <li><a class="dropdown-item text-wrap" href="#">{{this.message}}</a></li>
+                                    {{/each}}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form action="/notifications/mark-read" method="POST" class="px-3">
+                                            <button type="submit" class="btn btn-sm btn-link p-0">Mark all as read</button>
+                                        </form>
+                                    </li>
+                                {{else}}
+                                    <li><p class="dropdown-item text-muted text-center small py-3">No new notifications</p></li>
+                                {{/if}}
+                            </ul>
+                        </div>
+                        <!-- User Dropdown -->
+                        <div class="dropdown">
+                            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="https://i.pravatar.cc/40?u={{user.user_id}}" alt="" width="32" height="32" class="rounded-circle me-2">
+                                <strong class="text-dark">{{user.profile_info.firstName}}</strong>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end text-small shadow border-0">
+                                <li><a class="dropdown-item" href="/settings">Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Toast Container for Floating Notifications -->
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <!-- Toasts will be inserted here dynamically -->
+            </div>
+
+            <!-- Page Content -->
+            <main class="p-4">
+                {{#if success_msg}}<div class="alert alert-success">{{success_msg}}</div>{{/if}}
+                {{#if error_msg}}<div class="alert alert-danger">{{error_msg}}</div>{{/if}}
+                {{{body}}}
+            </main>
+        </div>
+    </div>
+    <div class="offcanvas-backdrop fade show d-lg-none" id="sidebar-backdrop" style="display: none;"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            const htmlElement = document.documentElement;
+
+            // Function to set the theme
+            const setTheme = (theme) => {
+                htmlElement.setAttribute('data-bs-theme', theme);
+                localStorage.setItem('theme', theme);
+                const themeToggle = document.getElementById('theme-toggle-switch');
+                if (themeToggle) {
+                    themeToggle.checked = theme === 'dark';
+                }
+            };
+
+            // Apply the saved theme on page load
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+
+            // Add event listener for the theme toggle if it exists on the current page
+            const themeToggle = document.getElementById('theme-toggle-switch');
+            if (themeToggle) {
+                themeToggle.addEventListener('change', () => {
+                    const newTheme = themeToggle.checked ? 'dark' : 'light';
+                    setTheme(newTheme);
+                });
+            }
+
+            // Socket.io logic for floating notifications
+            const socket = io();
+            const toastContainer = document.querySelector('.toast-container');
+
+            // Join a room specific to this user
+            socket.emit('join-room', 'user-{{user.user_id}}');
+
+            // --- Single, consolidated listener for new notifications ---
+            socket.on('new-notification', (data) => {
+                // 1. Show the floating "toast" notification
+                const toastEl = document.createElement('div');
+                toastEl.classList.add('toast');
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+                toastEl.innerHTML = `
+                    <div class="toast-header">
+                        <i class="fas fa-bell me-2 text-primary"></i>
+                        <strong class="me-auto">New Notification</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">${data.message}</div>
+                `;
+                toastContainer.appendChild(toastEl);
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+
+                // 2. Dynamically update the header notification bell
+                const notificationBell = document.querySelector('.notification-bell');
+                const dropdownMenu = document.querySelector('.notification-bell + .dropdown-menu');
+                
+                let badge = notificationBell.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = parseInt(badge.textContent) + 1;
+                } else {
+                    badge = document.createElement('span');
+                    badge.className = 'badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle';
+                    badge.style.fontSize = '0.6em';
+                    badge.textContent = '1';
+                    notificationBell.appendChild(badge);
+                }
+
+                if (dropdownMenu) {
+                    const placeholder = dropdownMenu.querySelector('p.text-muted');
+                    if (placeholder) {
+                        placeholder.parentElement.remove();
+                    }
+                    const newNotificationItem = document.createElement('li');
+                    newNotificationItem.innerHTML = `<a class="dropdown-item text-wrap" href="#">${data.message}</a>`;
+                    const divider = dropdownMenu.querySelector('hr.dropdown-divider');
+                    divider.insertAdjacentElement('afterend', newNotificationItem);
+                }
+            });
+
+            // Sidebar Toggle Logic
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('is-open');
+                    backdrop.style.display = sidebar.classList.contains('is-open') ? 'block' : 'none';
+                });
+                backdrop.addEventListener('click', () => {
+                    sidebar.classList.remove('is-open');
+                    backdrop.style.display = 'none';
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

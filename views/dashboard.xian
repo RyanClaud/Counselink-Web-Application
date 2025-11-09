@@ -1,0 +1,339 @@
+<div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <h2 class="mb-3 mb-md-0">Welcome, {{user.profile_info.firstName}}!</h2>
+        {{#if (eq user.role 'student')}}
+            <a href="/appointments/new" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i><span class="d-none d-sm-inline">Book New </span>Appointment
+            </a>
+        {{/if}}
+    </div>
+
+    {{!-- Student Dashboard --}}
+    {{#if (eq user.role 'student')}}
+        <!-- Stat Cards -->
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-hourglass-half fa-2x text-warning me-3"></i>
+                        <div>
+                            <h4 class="card-title text-warning mb-0 fw-bold">{{stats.pending}}</h4>
+                            <p class="card-text text-muted">Pending</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-calendar-check fa-2x text-success me-3"></i>
+                        <div>
+                            <h4 class="card-title text-success mb-0 fw-bold">{{stats.approved}}</h4>
+                            <p class="card-text text-muted">Approved</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-12 mb-3">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-2x text-info me-3"></i>
+                        <div>
+                            <h4 class="card-title text-info mb-0 fw-bold">{{stats.completed}}</h4>
+                            <p class="card-text text-muted">Completed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments List -->
+        <h4 class="mt-4 mb-3">My Appointments</h4>
+        {{#if appointments.length}}
+            {{#each appointments}}
+            <div class="card appointment-card mb-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-4 mb-2 mb-lg-0">
+                            <h6 class="mb-1">With: {{this.counselor.profile_info.firstName}} {{this.counselor.profile_info.lastName}}</h6>
+                            <p class="text-muted mb-0">{{this.date_time}}</p>
+                        </div>
+                        <div class="col-lg-6 mb-2 mb-lg-0">
+                            <p class="mb-0 fst-italic">"{{this.reason}}"</p>
+                        </div>
+                        <div class="col-lg-2 text-lg-end">
+                            <span class="badge fs-6 text-capitalize
+                                {{#if (eq this.status 'pending')}}bg-warning{{/if}}
+                                {{#if (eq this.status 'approved')}}bg-success{{/if}}
+                                {{#if (eq this.status 'completed')}}bg-info{{/if}}
+                                {{#if (eq this.status 'canceled')}}bg-danger{{/if}}">
+                                {{this.status}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+        {{else}}
+            <div class="text-center p-5 bg-white rounded shadow-sm">
+                <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                <h5 class="mb-3">No Appointments Yet</h5>
+                <p class="text-muted">It looks like you haven't scheduled any appointments. <br>Taking the first step is easy.</p>
+                <a href="/appointments/new" class="btn btn-primary mt-2">Book Your First Appointment</a>
+            </div>
+        {{/if}}
+    {{/if}}
+
+    {{!-- Counselor Dashboard --}}
+    {{#if (eq user.role 'counselor')}}
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Incoming Appointment Requests</h4>
+            </div>
+            <div class="card-body">
+                {{#if appointments.length}}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Date & Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each appointments}}
+                                <tr>
+                                    <td>{{this.student.profile_info.firstName}} {{this.student.profile_info.lastName}}</td>
+                                    <td>{{this.date_time}}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {{#if (eq this.status 'pending')}}bg-warning{{/if}}
+                                            {{#if (eq this.status 'approved')}}bg-success{{/if}}">
+                                            {{this.status}}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{#if (eq this.status 'pending')}}
+                                            <a href="/appointments/{{this.appointment_id}}/approve" class="btn btn-sm btn-success">Approve</a>
+                                        {{/if}}
+                                        {{#if (eq this.status 'approved')}}
+                                            <a href="/records/{{this.appointment_id}}/edit" class="btn btn-sm btn-info">Add/Edit Notes</a>
+                                        {{/if}}
+                                        {{!-- Future actions like 'Cancel' or 'Reschedule' can go here --}}
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                {{else}}
+                    <p class="text-center">You have no pending appointment requests.</p>
+                {{/if}}
+            </div>
+        </div>
+    {{/if}}
+
+    {{!-- Admin Dashboard --}}
+    {{#if (eq user.role 'admin')}}
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-users fa-2x text-primary me-3"></i>
+                        <div>
+                            <h4 class="card-title text-primary mb-0 fw-bold">{{stats.studentCount}}</h4>
+                            <p class="card-text text-muted">Total Students</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-user-tie fa-2x text-success me-3"></i>
+                        <div>
+                            <h4 class="card-title text-success mb-0 fw-bold">{{stats.counselorCount}}</h4>
+                            <p class="card-text text-muted">Total Counselors</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-calendar-check fa-2x text-info me-3"></i>
+                        <div>
+                            <h5 class="card-title text-info mb-0">{{stats.appointmentCount}}</h5>
+                            <p class="card-text text-muted">Total Appointments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm mb-3 stat-card">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-hourglass-half fa-2x text-warning me-3"></i>
+                        <div>
+                            <h4 class="card-title text-warning mb-0 fw-bold">{{stats.pendingCount}}</h4>
+                            <p class="card-text text-muted">Pending Sessions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row mt-4">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <div class="card shadow-sm">
+                    <div class="card-body d-flex justify-content-center align-items-center" style="height: 350px;">
+                        <canvas id="appointmentStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body d-flex justify-content-center align-items-center" style="height: 350px;">
+                        <canvas id="studentGenderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Appointments Table -->
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Recent Appointments</h4>
+                <a href="/reports/appointments" class="btn btn-primary" target="_blank">Generate PDF Report</a>
+            </div>
+            <div class="card-body">
+                {{#if recentAppointments.length}}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Counselor</th>
+                                    <th>Date & Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each recentAppointments}}
+                                <tr>
+                                    <td>{{this.student.profile_info.firstName}} {{this.student.profile_info.lastName}}</td>
+                                    <td>{{this.counselor.profile_info.firstName}} {{this.counselor.profile_info.lastName}}</td>
+                                    <td>{{this.date_time}}</td>
+                                    <td>
+                                        <span class="badge {{#if (eq this.status 'pending')}}bg-warning{{/if}}{{#if (eq this.status 'approved')}}bg-success{{/if}}{{#if (eq this.status 'completed')}}bg-info{{/if}}{{#if (eq this.status 'canceled')}}bg-danger{{/if}}">
+                                            {{this.status}}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                {{else}}
+                    <p class="text-center">No appointments have been scheduled yet.</p>
+                {{/if}}
+            </div>
+        </div>
+    {{/if}}
+
+    <style>
+        .stat-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .appointment-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .appointment-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0.5rem 1rem rgba(var(--bs-primary-rgb), 0.1) !important;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartData = {{{json chartData}}};
+
+            // 1. Appointment Status Chart (Doughnut)
+            const appointmentCtx = document.getElementById('appointmentStatusChart');
+            if (appointmentCtx) {
+                new Chart(appointmentCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.appointmentStatus.labels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                        datasets: [{
+                            label: 'Appointments',
+                            data: chartData.appointmentStatus.data,
+                            backgroundColor: [
+                                'rgba(250, 204, 21, 0.7)',  // Pending (Yellow)
+                                'rgba(16, 185, 129, 0.7)', // Approved (Green)
+                                'rgba(59, 130, 246, 0.7)',  // Completed (Blue)
+                                'rgba(239, 68, 68, 0.7)'    // Canceled (Red)
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Appointments by Status'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. Student Gender Chart (Pie)
+            const studentGenderCtx = document.getElementById('studentGenderChart');
+            if (studentGenderCtx) {
+                new Chart(studentGenderCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: chartData.studentGender.labels,
+                        datasets: [{
+                            label: 'Sessions',
+                            data: chartData.studentGender.data,
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.7)', // Male (Blue)
+                                'rgba(236, 72, 153, 0.7)', // Female (Pink)
+                                'rgba(16, 185, 129, 0.7)', // Other (Green)
+                                'rgba(156, 163, 175, 0.7)'  // Prefer not to say / Unknown (Gray)
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Counseling Sessions by Student Gender'
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</div>

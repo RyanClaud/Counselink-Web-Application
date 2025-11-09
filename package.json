@@ -1,0 +1,35 @@
+{
+  "name": "CounseLink",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "xian-start": "node index.js",
+    "xian": "nodemon index.js",
+    "migrate": "node migrate.js",
+    "create:model": "node create.js model",
+    "create:controller": "node create.js controller",
+    "generate-secret": "node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.2",
+    "bcryptjs": "^2.4.3",
+    "bootstrap": "^5.3.8",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "express-session": "^1.18.0",
+    "express-validator": "^7.1.0",
+    "hbs": "^4.2.0",
+    "inquirer": "^9.2.15",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.7",
+    "pdfkit": "^0.15.0",
+    "sequelize": "^6.37.3",
+    "socket.io": "^4.7.5",
+    "sqlstring": "^2.3.3"
+  }
+}

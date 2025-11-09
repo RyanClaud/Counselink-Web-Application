@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <title>Login | CounseLink</title>
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: linear-gradient(rgba(249, 250, 251, 0.9), rgba(249, 250, 251, 0.9)), url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .form-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-error .card {
+            animation: shake 0.5s;
+        }
+        .login-error input {
+            border-color: var(--bs-danger) !important;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+        .logo-img {
+            /* Apply the jump animation continuously */
+            animation: jump 2s ease-in-out infinite;
+        }
+        @keyframes jump {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-10px) scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <div class="col-lg-5 col-md-7 col-sm-10 {{#if login_error}}login-error{{/if}}">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <a href="/" title="Back to Home">
+                                <img src="/logo/counselink_logo.png" alt="CounseLink Logo" height="80" class="mb-3 logo-img">
+                            </a>
+                            <h1 class="h3 fw-bold text-primary">Welcome Back</h1>
+                            <p class="text-muted">Log in now and book your counseling session.</p>
+                            {{#if error_msg}}
+                            <div class="alert alert-danger mt-3">
+                                {{error_msg}}
+                            </div>
+                            {{/if}}
+                        </div>
+                        <form action="/login" method="POST">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mt-3">Log In</button>
+                        </form>
+                        <div class="text-center mt-4">
+                            <p class="text-muted">Don't have an account? <a href="/register" class="fw-medium text-primary">Sign up</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <canvas id="confetti-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index: -1;"></canvas>
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle fa-4x text-success"></i>
+                    </div>
+                    <h5 class="modal-title mb-2" id="successModalLabel">Account Created!</h5>
+                    <p>{{success_msg}}</p>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Continue to Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const successMessage = "{{success_msg}}";
+            if (successMessage) {
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                const confettiCanvas = document.getElementById('confetti-canvas');
+                const myConfetti = confetti.create(confettiCanvas, {
+                    resize: true,
+                    useWorker: true
+                });
+
+                successModal.show();
+
+                // Fire confetti when modal is shown
+                myConfetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
