@@ -181,31 +181,33 @@ app.use("/", router);
 
 export default app;
 
-const startServer = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Database connection has been established successfully.');
-
-    // Socket.io connection logic
-    io.on('connection', (socket) => {
-      console.log('🔌 A user connected');
-      socket.on('disconnect', () => {
-        console.log('🔌 User disconnected');
+// Vercel will not use this block, but it will allow `npm run xian` to work locally.
+if (process.env.NODE_ENV !== 'production') {
+  const startServer = async () => {
+    try {
+      await sequelize.authenticate();
+      console.log('✅ Database connection has been established successfully.');
+  
+      // Socket.io connection logic
+      io.on('connection', (socket) => {
+        console.log('🔌 A user connected');
+        socket.on('disconnect', () => {
+          console.log('🔌 User disconnected');
+        });
+  
+        // Join a room based on user ID
+        socket.on('join-room', (room) => {
+          socket.join(room);
+          console.log(`Socket ${socket.id} joined room: ${room}`);
+        });
       });
-
-      // Join a room based on user ID
-      socket.on('join-room', (room) => {
-        socket.join(room);
-        console.log(`Socket ${socket.id} joined room: ${room}`);
-      });
-    });
-
-    httpServer.listen(PORT, () => console.log(`🔥 XianFire running at http://localhost:${PORT}`));
-  } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
+  
+      httpServer.listen(PORT, () => console.log(`🔥 XianFire running at http://localhost:${PORT}`));
+    } catch (error) {
+      console.error('❌ Unable to connect to the database:', error);
+    }
+  };
+  if (!process.env.ELECTRON) {
+      startServer();
   }
-};
-
-if (!process.env.ELECTRON) {
-  startServer();
 }
