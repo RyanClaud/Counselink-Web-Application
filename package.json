@@ -10,7 +10,8 @@
     "create:model": "node create.js model",
     "create:controller": "node create.js controller",
     "generate-secret": "node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "build": "echo 'Build step not required, just installing dependencies'"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.2",

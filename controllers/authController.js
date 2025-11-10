@@ -27,7 +27,7 @@
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 import { validationResult } from 'express-validator';
-import { User, Appointment, Notification } from "../models/index.js";
+import { User, Appointment, Notification, Feedback } from "../models/index.js";
 import sequelize from '../config/database.js';
 
 export const loginPage = (req, res) => res.render("login", { title: "Login" });
@@ -75,10 +75,14 @@ export const dashboardPage = async (req, res) => {
           group: ['status']
       });
 
-      // NEW: Appointments over time (last 6 months)
+      // Appointments over time (last 6 months) - Made database-agnostic
+      // Use DATE_TRUNC for postgres, DATE_FORMAT for mysql
+      const isPostgres = sequelize.options.dialect === 'postgres';
       const appointmentsByMonth = await Appointment.findAll({
           attributes: [
-              [sequelize.fn('DATE_FORMAT', sequelize.col('date_time'), '%Y-%m'), 'month'],
+              isPostgres
+                  ? [sequelize.fn('TO_CHAR', sequelize.col('date_time'), 'YYYY-MM'), 'month']
+                  : [sequelize.fn('DATE_FORMAT', sequelize.col('date_time'), '%Y-%m'), 'month'],
               [sequelize.fn('COUNT', 'appointment_id'), 'count']
           ],
           where: {
@@ -91,6 +95,25 @@ export const dashboardPage = async (req, res) => {
           raw: true
       });
 
+      // --- NEW: Data for Feedback Charts ---
+      const counselorRatings = await User.findAll({
+          where: { role: 'counselor' },
+          attributes: [
+              'profile_info',
+              [sequelize.fn('AVG', sequelize.col('receivedFeedback.rating')), 'averageRating']
+          ],
+          include: [{ model: Feedback, as: 'receivedFeedback', attributes: [] }],
+          group: ['"Users"."user_id"'],
+          order: [[sequelize.literal('averageRating'), 'DESC NULLS LAST']],
+          raw: true
+      });
+
+      const ratingDistribution = await Feedback.findAll({
+          attributes: ['rating', [sequelize.fn('COUNT', sequelize.col('rating')), 'count']],
+          group: ['rating'],
+          order: [['rating', 'ASC']]
+      });
+
       const chartData = {
           appointmentStatus: {
               labels: appointmentStatusData.map(item => item.status),
@@ -99,6 +122,14 @@ export const dashboardPage = async (req, res) => {
           appointmentsByMonth: {
               labels: appointmentsByMonth.map(item => item.month),
               data: appointmentsByMonth.map(item => item.count)
+          },
+          counselorRatings: {
+              labels: counselorRatings.map(c => `${c['profile_info.firstName']} ${c['profile_info.lastName']}`),
+              data: counselorRatings.map(c => c.averageRating)
+          },
+          ratingDistribution: {
+              labels: ratingDistribution.map(r => `${r.rating} Star${r.rating > 1 ? 's' : ''}`),
+              data: ratingDistribution.map(r => r.get('count'))
           }
       };
 
@@ -190,13 +221,16 @@ export const loginUser = async (req, res) => {
         message = "Your account has been locked due to too many failed login attempts. Please contact an administrator.";
         
         // Notify all administrators
-        const admins = await User.findAll({ where: { role: 'admin' } });
-        for (const admin of admins) {
-          const notif = await Notification.create({
-            user_id: admin.user_id,
-            message: `User account for ${user.email} has been locked due to multiple failed login attempts.`
-          });
-          req.io.to(`user-${admin.user_id}`).emit('new-notification', { message: notif.message });
+        // FIX: Only attempt to send notifications if req.io exists (i.e., not in production on Vercel)
+        if (req.io) {
+            const admins = await User.findAll({ where: { role: 'admin' } });
+            for (const admin of admins) {
+                const notif = await Notification.create({
+                    user_id: admin.user_id,
+                    message: `User account for ${user.email} has been locked due to multiple failed login attempts.`
+                });
+                req.io.to(`user-${admin.user_id}`).emit('new-notification', { message: notif.message });
+            }
         }
 
       } else if (user.failed_login_attempts === 6) {
