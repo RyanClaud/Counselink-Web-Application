@@ -134,6 +134,7 @@
             .main-content {
                 margin-left: 0;
                 padding-top: 70px; /* Add padding to push content below the sticky header */
+                padding-bottom: 80px; /* Add padding to prevent overlap with bottom nav */
             }
         }
         .card {
@@ -261,8 +262,8 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{#if (eq title 'Feedback Overview')}}active{{/if}}" href="/admin/feedback">
-                                <i class="fa fa-star"></i> Feedback
+                            <a class="nav-link {{#if (eq title 'Daily Report')}}active{{/if}}" href="/admin/reports/daily">
+                                <i class="fa fa-calendar-day"></i> Daily Report
                             </a>
                         </li>
                     </ul>
@@ -274,7 +275,6 @@
                 <div class="container">
                     <div class="row justify-content-around">
                         <a class="nav-link col {{#if (eq title 'Admin Dashboard')}}active{{/if}}" href="/dashboard"><i class="fa fa-home"></i> Dashboard</a>
-                        <a class="nav-link col {{#if (eq title 'User Management')}}active{{/if}}" href="/admin/users"><i class="fa fa-users"></i> Management</a>
                     </div>
                 </div>
             </div>

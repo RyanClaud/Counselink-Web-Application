@@ -7,7 +7,7 @@
     This file contains controllers for administrator-specific actions.
 */
 
-import { User, Feedback } from '../models/index.js';
+import { User, Feedback, Appointment } from '../models/index.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
 
@@ -40,7 +40,8 @@ export const renderFeedbackOverview = async (req, res) => {
             include: [{
                 model: Feedback,
                 as: 'receivedFeedback',
-                attributes: []
+                attributes: [],
+                required: false // This ensures a LEFT JOIN
             }],
             attributes: [
                 'user_id',
@@ -48,9 +49,10 @@ export const renderFeedbackOverview = async (req, res) => {
                 [sequelize.fn('AVG', sequelize.col('receivedFeedback.rating')), 'averageRating'],
                 [sequelize.fn('COUNT', sequelize.col('receivedFeedback.rating')), 'totalRatings']
             ],
-            group: ['"Users"."user_id"'],
-            order: [[sequelize.literal('averageRating'), 'DESC NULLS LAST']],
-            subQuery: false
+            group: ['User.user_id', 'User.profile_info'],
+            order: sequelize.options.dialect === 'mysql'
+                ? [[sequelize.literal('averageRating IS NULL, averageRating DESC')]]
+                : [[sequelize.literal('averageRating'), 'DESC NULLS LAST']]
         });
 
         res.render('admin/feedback', {
@@ -60,6 +62,64 @@ export const renderFeedbackOverview = async (req, res) => {
         });
     } catch (error) {
         console.error('Failed to load feedback overview:', error);
+        res.redirect('/dashboard');
+    }
+};
+
+/**
+ * Renders a report of total appointments per counselor for the current day.
+ */
+export const renderDailyReport = async (req, res) => {
+    try {
+        // Use the date from query or default to today.
+        // The date from the input will be like 'YYYY-MM-DD'.
+        const selectedDate = req.query.date ? new Date(req.query.date + 'T00:00:00') : new Date();
+
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const counselors = await User.findAll({
+            where: { role: 'counselor' },
+            include: [{
+                model: Appointment,
+                as: 'counselorAppointments',
+                attributes: [],
+                where: {
+                    date_time: {
+                        [Op.between]: [startOfDay, endOfDay]
+                    }
+                },
+                required: false // Use LEFT JOIN to include counselors with 0 appointments
+            }],
+            attributes: [
+                'user_id',
+                'profile_info',
+                [sequelize.fn('COUNT', sequelize.col('counselorAppointments.appointment_id')), 'appointmentCount']
+            ],
+            group: ['User.user_id', 'User.profile_info'],
+            order: [[sequelize.literal('appointmentCount'), 'DESC']]
+        });
+
+        const chartData = {
+            labels: counselors.map(c => `${c.profile_info.firstName} ${c.profile_info.lastName}`),
+            data: counselors.map(c => c.dataValues.appointmentCount)
+        };
+
+        // Format date for the input field (YYYY-MM-DD)
+        const reportDate = selectedDate.toISOString().split('T')[0];
+
+        res.render('admin/daily-report', {
+            title: 'Daily Report',
+            layout: 'layouts/admin',
+            counselors,
+            chartData,
+            reportDate,
+            hasAppointments: counselors.some(c => c.dataValues.appointmentCount > 0)
+        });
+    } catch (error) {
+        console.error('Failed to load daily report:', error);
         res.redirect('/dashboard');
     }
 };

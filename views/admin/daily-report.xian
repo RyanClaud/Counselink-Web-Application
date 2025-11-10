@@ -1,0 +1,163 @@
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/admin/reports/daily" class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+            <div class="flex-grow-1">
+                <label for="reportDate" class="form-label fw-bold">Select a Date</label>
+                <input type="date" class="form-control" id="reportDate" name="date" value="{{reportDate}}">
+            </div>
+            <button type="submit" class="btn btn-primary mt-3 mt-md-0 align-self-md-end">View Report</button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        {{#if hasAppointments}}
+        <div class="card h-100">
+            <div class="card-body p-4 d-flex justify-content-center align-items-center" style="min-height: 450px;">
+                <canvas id="dailyReportChart"></canvas>
+            </div>
+        </div>
+        {{else}}
+        <div class="card h-100">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center text-center text-muted">
+                <i class="fas fa-chart-bar fa-4x mb-3"></i>
+                <h5 class="mb-1">No Appointment Data</h5>
+                <p>There is no data to visualize for {{formatDate reportDate}}.</p>
+            </div>
+        </div>
+        {{/if}}
+    </div>
+    <div class="col-lg-5 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-transparent border-0 pt-3">
+                <h4 class="mb-0">Daily Leaderboard</h4>
+                <small class="text-muted">For {{formatDate reportDate}}</small>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col" style="width: 10%;">Rank</th>
+                                <th scope="col">Counselor</th>
+                                <th scope="col" class="text-center">Appointments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#if counselors.length}}
+                                {{#each counselors}}
+                                <tr>
+                                    <td class="text-center fw-bold fs-5 text-muted">{{add @index 1}}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="https://i.pravatar.cc/40?u={{this.user_id}}" alt="Profile" class="rounded-circle me-3" width="40" height="40">
+                                            <div>
+                                                <div class="fw-bold">{{this.profile_info.firstName}} {{this.profile_info.lastName}}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary rounded-pill fs-6 px-3 py-2">{{this.dataValues.appointmentCount}}</span>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            {{else}}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-5">
+                                        <p class="mb-0">No counselor activity for the selected date.</p>
+                                </td>
+                                </tr>
+                            {{/if}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartData = {{{json chartData}}};
+        const ctx = document.getElementById('dailyReportChart');
+
+        if (ctx && chartData && chartData.data.some(d => d > 0)) { // Only render chart if there's data
+            const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+            // Use a different gradient for dark mode for better visibility
+            gradient.addColorStop(0, isDark ? 'rgba(74, 222, 128, 0.8)' : 'rgba(59, 130, 246, 0.9)');
+            gradient.addColorStop(1, isDark ? 'rgba(74, 222, 128, 0.3)' : 'rgba(59, 130, 246, 0.4)');
+
+            new Chart(ctx, {
+                type: 'bar', // Changed to horizontal bar chart
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Appointments',
+                        data: chartData.data,
+                        backgroundColor: gradient,
+                        borderColor: isDark ? 'rgba(74, 222, 128, 1)' : 'rgba(37, 99, 235, 1)',
+                        borderWidth: 2,
+                        borderRadius: 5,
+                        hoverBackgroundColor: 'rgba(59, 130, 246, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y', // This makes the bar chart horizontal
+                    scales: {
+                        x: { // 'x' axis for a horizontal chart
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            },
+                            grid: {
+                                color: 'rgba(200, 200, 200, 0.2)'
+                            }
+                        },
+                        y: { // 'y' axis for a horizontal chart
+                            grid: {
+                                display: false
+                            }
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Daily Appointments per Counselor',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#333',
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 12 },
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += `${context.parsed.y} appointment(s)`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>

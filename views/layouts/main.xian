@@ -137,6 +137,7 @@
             flex-grow: 1; /* Allow it to grow */
             transition: margin-left .3s;
             padding-top: 70px; /* Add padding to push content below the sticky header */
+            padding-bottom: 80px; /* Add padding to prevent overlap with bottom nav */
         }
         .top-nav {
             z-index: 1020; /* Above sidebar */

@@ -51,7 +51,8 @@ import {
     renderFeedbackOverview,
     unlockUser,
     renderAddUserPage,
-    createUser
+    createUser,
+    renderDailyReport
 } from "../controllers/adminController.js";
 import {
     renderRecordPage,
@@ -115,6 +116,7 @@ router.post("/admin/users/:id/unlock", protect(['admin']), unlockUser);
 router.get("/admin/feedback", protect(['admin']), renderFeedbackOverview);
 router.get("/admin/users/add", protect(['admin']), renderAddUserPage);
 router.post("/admin/users/add", protect(['admin']), createUser);
+router.get("/admin/reports/daily", protect(['admin']), renderDailyReport);
 router.get("/reports/appointments", protect(['admin']), generateAppointmentReport);
 
 export default router;

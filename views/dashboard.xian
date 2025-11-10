@@ -324,6 +324,122 @@
                                 'rgba(59, 130, 246, 0.7)',  // Completed (Blue)
                                 'rgba(239, 68, 68, 0.7)'    // Canceled (Red)
                             ],
+                            borderColor: 'var(--counselink-bg)',
+                            borderWidth: 4,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Appointments by Status',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. Appointments by Month Chart (Line)
+            const appointmentsByMonthCtx = document.getElementById('appointmentsByMonthChart');
+            if (appointmentsByMonthCtx && chartData.appointmentsByMonth) {
+                const gradient = appointmentsByMonthCtx.getContext('2d').createLinearGradient(0, 0, 0, 350);
+                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.5)');
+                gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+                new Chart(appointmentsByMonthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.appointmentsByMonth.labels,
+                        datasets: [{
+                            label: 'Appointments',
+                            data: chartData.appointmentsByMonth.data,
+                            fill: true,
+                            backgroundColor: gradient,
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(16, 185, 129, 1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(200, 200, 200, 0.2)'
+                                },
+                                ticks: {
+                                    stepSize: 1,
+                                    callback: function(value) { if (Number.isInteger(value)) { return value; } },
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Appointments Over Last 6 Months',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartData = {{{json chartData}}};
+
+            // 1. Appointment Status Chart (Doughnut)
+            const appointmentCtx = document.getElementById('appointmentStatusChart');
+            if (appointmentCtx) {
+                new Chart(appointmentCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.appointmentStatus.labels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                        datasets: [{
+                            label: 'Appointments',
+                            data: chartData.appointmentStatus.data,
+                            backgroundColor: [
+                                'rgba(250, 204, 21, 0.7)',  // Pending (Yellow)
+                                'rgba(16, 185, 129, 0.7)', // Approved (Green)
+                                'rgba(59, 130, 246, 0.7)',  // Completed (Blue)
+                                'rgba(239, 68, 68, 0.7)'    // Canceled (Red)
+                            ],
                             borderColor: '#fff',
                             borderWidth: 2
                         }]

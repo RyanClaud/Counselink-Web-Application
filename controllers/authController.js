@@ -78,6 +78,7 @@ export const dashboardPage = async (req, res) => {
       // Appointments over time (last 6 months) - Made database-agnostic
       // Use DATE_TRUNC for postgres, DATE_FORMAT for mysql
       const isPostgres = sequelize.options.dialect === 'postgres';
+      const isMysql = sequelize.options.dialect === 'mysql';
       const appointmentsByMonth = await Appointment.findAll({
           attributes: [
               isPostgres
@@ -102,9 +103,16 @@ export const dashboardPage = async (req, res) => {
               'profile_info',
               [sequelize.fn('AVG', sequelize.col('receivedFeedback.rating')), 'averageRating']
           ],
-          include: [{ model: Feedback, as: 'receivedFeedback', attributes: [] }],
-          group: ['"Users"."user_id"'],
-          order: [[sequelize.literal('averageRating'), 'DESC NULLS LAST']],
+          include: [{
+              model: Feedback,
+              as: 'receivedFeedback',
+              attributes: [],
+              required: false // This ensures a LEFT JOIN
+          }],
+          group: ['User.user_id', 'User.profile_info'],
+          order: isMysql
+            ? [[sequelize.literal('averageRating IS NULL, averageRating DESC')]]
+            : [[sequelize.literal('averageRating'), 'DESC NULLS LAST']],
           raw: true
       });
 

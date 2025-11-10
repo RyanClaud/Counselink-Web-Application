@@ -144,6 +144,10 @@ hbs.registerHelper('formatDate', function (date) {
     return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 });
 
+hbs.registerHelper('add', function (a, b) {
+    return a + b;
+});
+
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "xian");
 app.engine('xian', hbs.__express);
