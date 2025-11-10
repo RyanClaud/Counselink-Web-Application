@@ -10,30 +10,106 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
+            --neumorphic-bg: #e0e5ec;
+            --neumorphic-shadow-dark: #a3b1c6;
+            --neumorphic-shadow-light: #ffffff;
+            --neumorphic-text: #555;
             font-family: 'Poppins', sans-serif;
-            background-image: linear-gradient(rgba(249, 250, 251, 0.9), rgba(249, 250, 251, 0.9)), url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-position: center;
+            background-color: var(--neumorphic-bg);
+            transition: background-color 0.3s ease;
+        }
+        [data-bs-theme="dark"] body {
+            --neumorphic-bg: #2c3344;
+            --neumorphic-shadow-dark: #242a38;
+            --neumorphic-shadow-light: #343c50;
+            --neumorphic-text: #d1d5db;
+        }
+        [data-bs-theme="dark"] .text-primary, [data-bs-theme="dark"] a.text-primary {
+            color: #60a5fa !important;
+        }
+        [data-bs-theme="dark"] .form-control::placeholder, [data-bs-theme="dark"] .form-select {
+            color: #6b7280;
+        }
+        [data-bs-theme="dark"] .btn-primary {
+            color: white;
         }
         .form-container {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--neumorphic-text);
+            padding: 2rem 0;
+        }
+        .card {
+            background: var(--neumorphic-bg);
+            border-radius: 20px;
+            border: none;
+            box-shadow: 9px 9px 16px var(--neumorphic-shadow-dark), -9px -9px 16px var(--neumorphic-shadow-light) !important;
+        }
+        .form-control, .form-select {
+            background-color: var(--neumorphic-bg);
+            border: none;
+            border-radius: 10px;
+            box-shadow: inset 5px 5px 10px var(--neumorphic-shadow-dark), inset -5px -5px 10px var(--neumorphic-shadow-light);
+            color: var(--neumorphic-text);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: var(--neumorphic-bg);
+            color: var(--neumorphic-text);
+            box-shadow: inset 5px 5px 10px var(--neumorphic-shadow-dark), inset -5px -5px 10px var(--neumorphic-shadow-light);
+        }
+        .btn-primary {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 5px 5px 10px var(--neumorphic-shadow-dark), -5px -5px 10px var(--neumorphic-shadow-light);
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            box-shadow: 7px 7px 14px var(--neumorphic-shadow-dark), -7px -7px 14px var(--neumorphic-shadow-light);
+        }
+        .btn-primary:active, .btn-primary:focus {
+            box-shadow: inset 5px 5px 10px var(--neumorphic-shadow-dark), inset -5px -5px 10px var(--neumorphic-shadow-light) !important;
+        }
+        .text-primary, a.text-primary {
+            color: #3B82F6 !important;
+        }
+        .text-muted {
+            color: var(--neumorphic-text) !important;
+            opacity: 0.8;
         }
         .logo-img {
-            /* Apply the jump animation continuously */
             animation: jump 2s ease-in-out infinite;
         }
         @keyframes jump {
-            0%, 100% {
-                transform: translateY(0) scale(1);
-            }
-            50% {
-                transform: translateY(-10px) scale(1.05);
-            }
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.05); }
         }
     </style>
+    <!-- Theme Toggle CSS -->
+    <style>
+        .theme-toggle-container {
+            position: absolute; top: 1.5rem; right: 1.5rem; display: flex;
+            align-items: center; gap: 0.5rem; color: var(--neumorphic-text);
+        }
+        .theme-toggle-container .fa-sun { color: #FACC15; }
+        [data-bs-theme="dark"] .theme-toggle-container .fa-moon { color: #818cf8; }
+        .theme-switch {
+            position: relative; display: inline-block; width: 48px; height: 24px;
+        }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #3B82F6; }
+        input:checked + .slider:before { transform: translateX(24px); }
+    </style>
+
 </head>
 <body>
     <div class="container">
@@ -98,6 +174,16 @@
         </div>
     </div>
 
+    <!-- Theme Toggle HTML -->
+    <div class="theme-toggle-container">
+        <i class="fas fa-sun"></i>
+        <label class="theme-switch" for="theme-toggle-switch">
+            <input type="checkbox" id="theme-toggle-switch" />
+            <div class="slider round"></div>
+        </label>
+        <i class="fas fa-moon"></i>
+    </div>
+
     <!-- Terms and Conditions Modal -->
     <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable">
@@ -132,6 +218,28 @@
             termsCheckbox.addEventListener('change', function() {
                 registerBtn.disabled = !this.checked;
             });
+
+            // --- Theme Toggle Script ---
+            (function() {
+                const htmlElement = document.documentElement;
+                const setTheme = (theme) => {
+                    htmlElement.setAttribute('data-bs-theme', theme);
+                    localStorage.setItem('theme', theme);
+                    const themeToggle = document.getElementById('theme-toggle-switch');
+                    if (themeToggle) {
+                        themeToggle.checked = theme === 'dark';
+                    }
+                };
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                setTheme(savedTheme);
+                const themeToggle = document.getElementById('theme-toggle-switch');
+                if (themeToggle) {
+                    themeToggle.addEventListener('change', () => {
+                        const newTheme = themeToggle.checked ? 'dark' : 'light';
+                        setTheme(newTheme);
+                    });
+                }
+            })();
         });
     </script>
 </body>

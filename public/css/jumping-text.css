@@ -1,0 +1,61 @@
+.glass-container {
+  /* Glassmorphism effect */
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.75rem; /* 12px */
+  padding: 2rem; /* Increased padding for better spacing */
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.jumping-text-container {
+  /* Replaced @apply with raw CSS */
+  font-size: 1.5rem; /* text-2xl, slightly smaller to fit all text */
+  line-height: 2.5rem; /* Increased line-height for readability */
+  font-weight: 700; /* font-bold */
+  user-select: none;
+  text-align: center;
+  color: #1E293B; /* Dark text color for contrast */
+  display: flex; /* Use flexbox for alignment */
+  flex-wrap: wrap; /* Allow words to wrap to the next line */
+  justify-content: center; /* Center the words */
+  gap: 0.75rem 1rem; /* Increased vertical and horizontal space between words */
+}
+
+.topic-word {
+  display: inline-block;
+  /* Add a background and pill shape to each topic */
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 0.25rem 1rem;
+  border-radius: 9999px; /* Creates a pill shape */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.jump-letter {
+  /* Replaced @apply with raw CSS */
+  display: inline-block;
+  position: relative;
+}
+
+/* Only apply animation to letters within the .active-word */
+.active-word {
+  /* Highlight the currently jumping word */
+  background-color: #3B82F6; /* Primary blue color from your theme */
+  color: white;
+}
+.active-word .jump-letter {
+  animation: jump 1.8s ease-in-out; /* Removed 'infinite' */
+  animation-delay: calc(100ms * var(--i)); /* Adjusted delay for a nice wave */
+}
+
+@keyframes jump {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1rem); /* Jump height */
+  }
+}

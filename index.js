@@ -56,7 +56,8 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/bootstrap', express.static(path.join(process.cwd(), 'node_modules/bootstrap/dist')));
-app.use('/fontawesome', express.static(path.join(process.cwd(), 'node_modules/@fortawesome/fontawesome-free')));
+app.use('/fontawesome/css', express.static(path.join(process.cwd(), 'node_modules/@fortawesome/fontawesome-free/css')));
+app.use('/fontawesome/webfonts', express.static(path.join(process.cwd(), 'node_modules/@fortawesome/fontawesome-free/webfonts')));
 app.use('/logo', express.static(path.join(process.cwd(), 'logo')));
 app.use(express.static(path.join(process.cwd(), "public")));
 app.use(cookieParser());
@@ -122,6 +123,25 @@ hbs.registerHelper('times', function (n, block) {
         result.push(i);
     }
     return result;
+});
+
+// Register custom helpers for feedback page
+hbs.registerHelper('calculateStarPercentage', function (rating) {
+    const percentage = (rating / 5) * 100;
+    return percentage.toFixed(2);
+});
+
+hbs.registerHelper('formatNumber', function (num, digits) {
+    if (num === null || num === undefined) return 'N/A';
+    return parseFloat(num).toFixed(digits);
+});
+
+hbs.registerHelper('pluralize', function (count, singular, plural) {
+    return count === 1 ? singular : plural;
+});
+
+hbs.registerHelper('formatDate', function (date) {
+    return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 });
 
 app.set("views", path.join(__dirname, "views"));

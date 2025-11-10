@@ -9,6 +9,29 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root { --bs-body-bg: #fff; }
+        [data-bs-theme="dark"] {
+            --bs-body-bg: #111827;
+            --bs-body-color: #D1D5DB;
+        }
+        [data-bs-theme="dark"] .bg-white { background-color: #1F2937 !important; }
+        [data-bs-theme="dark"] .bg-light { background-color: #1F2937 !important; }
+        [data-bs-theme="dark"] .text-muted { color: #9ca3af !important; }
+        [data-bs-theme="dark"] .navbar.sticky-top {
+            background-color: rgba(31, 41, 55, 0.7) !important;
+        }
+        [data-bs-theme="dark"] .glass-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        [data-bs-theme="dark"] .jumping-text-container { color: #f9fafb; }
+        [data-bs-theme="dark"] .topic-word { background-color: rgba(255, 255, 255, 0.15); }
+        [data-bs-theme="dark"] .active-word { background-color: #60a5fa; color: #111827; }
+        [data-bs-theme="dark"] .card { background-color: #1F2937; }
+        [data-bs-theme="dark"] .btn-outline-primary {
+            color: #60a5fa;
+            border-color: #60a5fa;
+        }
         body {
             font-family: 'Poppins', sans-serif;
         }
@@ -68,8 +91,33 @@
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
         }
     </style>
+    <!-- Link to the animation stylesheet -->
+    <link rel="stylesheet" href="/css/jumping-text.css">
     <!-- Font Awesome for icons -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Theme Toggle CSS -->
+    <style>
+        .theme-toggle-container {
+            display: flex; align-items: center; gap: 0.5rem; color: #6c757d;
+        }
+        [data-bs-theme="dark"] .theme-toggle-container { color: #9ca3af; }
+        .theme-toggle-container .fa-sun { color: #FACC15; }
+        [data-bs-theme="dark"] .theme-toggle-container .fa-moon { color: #818cf8; }
+        .theme-switch {
+            position: relative; display: inline-block; width: 48px; height: 24px;
+        }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #3B82F6; }
+        input:checked + .slider:before { transform: translateX(24px); }
+    </style>
 </head>
 <body>
 
@@ -79,7 +127,16 @@
             <a class="navbar-brand" href="/">
                 <img src="/logo/counselink_logo.png" alt="CounseLink Logo" height="50">
             </a>
-            <div class="d-flex">
+            <div class="d-flex align-items-center">
+                <!-- Theme Toggle -->
+                <div class="theme-toggle-container me-3">
+                    <i class="fas fa-sun"></i>
+                    <label class="theme-switch" for="theme-toggle-switch">
+                        <input type="checkbox" id="theme-toggle-switch" />
+                        <div class="slider round"></div>
+                    </label>
+                    <i class="fas fa-moon"></i>
+                </div>
                 <a href="/login" class="btn btn-outline-primary me-2">Login</a>
                 <a href="/login" class="btn btn-primary">Get Started</a>
             </div>
@@ -106,19 +163,11 @@
         <div class="container text-center">
             <h2 class="fw-bold">Expert care for every mind</h2>
             <p class="lead text-muted mb-4">Our dedicated guidance personnel from Mindoro State University offer personalized care and support for various mental health concerns.</p>
-            <div class="d-flex flex-wrap justify-content-center gap-2">
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">ADHD</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Anger</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Anxiety</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Bipolar Disorder</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">CBT</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Depression</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">EMDR</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Grief/Loss</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Relationships</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Self Esteem</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Stress</span>
-                <span class="badge expert-care-badge bg-primary-subtle text-primary-emphasis rounded-pill fs-6 px-3 py-2">Trauma/PTSD</span>
+            <!-- This container will hold the animated text with a glass background -->
+            <div class="glass-container">
+                <div class="jumping-text-container">
+                    <span id="jumping-text"></span>
+                </div>
             </div>
         </div>
     </section>
@@ -209,6 +258,8 @@
     </footer>
 
     <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Link to the animation script -->
+    <script src="/js/jumping-text.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const observer = new IntersectionObserver((entries) => {
@@ -225,6 +276,28 @@
             document.querySelectorAll('.fade-in-section').forEach(section => {
                 observer.observe(section);
             });
+
+            // --- Theme Toggle Script ---
+            (function() {
+                const htmlElement = document.documentElement;
+                const setTheme = (theme) => {
+                    htmlElement.setAttribute('data-bs-theme', theme);
+                    localStorage.setItem('theme', theme);
+                    const themeToggle = document.getElementById('theme-toggle-switch');
+                    if (themeToggle) {
+                        themeToggle.checked = theme === 'dark';
+                    }
+                };
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                setTheme(savedTheme);
+                const themeToggle = document.getElementById('theme-toggle-switch');
+                if (themeToggle) {
+                    themeToggle.addEventListener('change', () => {
+                        const newTheme = themeToggle.checked ? 'dark' : 'light';
+                        setTheme(newTheme);
+                    });
+                }
+            })();
         });
     </script>
 </body>

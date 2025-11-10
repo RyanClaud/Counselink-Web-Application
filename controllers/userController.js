@@ -7,10 +7,12 @@ import sequelize from '../config/database.js';
  * Renders the user settings page.
  */
 export const renderSettingsPage = (req, res) => {
+    const layout = req.user.role === 'admin' ? 'layouts/admin' : 'layouts/main';
+    const title = req.user.role === 'admin' ? 'System Settings' : 'Account Settings';
     res.render('settings', {
-        title: 'Account Settings',
+        title: title,
         user: req.user,
-        layout: 'layouts/main'
+        layout: layout
     });
 };
 
@@ -38,7 +40,8 @@ export const renderMyFeedbackPage = async (req, res) => {
 
         res.render('feedback/counselor-view', {
             title: 'My Feedback',
-            layout: 'layouts/main',
+            layout: 'layouts/main', // Explicitly set the layout
+            user: req.user,
             feedbacks,
             stats
         });

@@ -1,0 +1,45 @@
+<style>
+    .average-stars-container {
+        position: relative;
+        display: inline-block;
+        font-size: 1.5rem; /* A bit smaller for a list view */
+        color: var(--neumorphic-shadow-dark); /* Empty star color */
+    }
+    .stars-foreground {
+        position: absolute; top: 0; left: 0; white-space: nowrap; overflow: hidden; color: #FACC15;
+    }
+</style>
+
+<div class="row">
+    {{#if counselors.length}}
+        {{#each counselors}}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center d-flex flex-column">
+                        <img src="https://i.pravatar.cc/80?u={{this.user_id}}" alt="Profile Picture" class="rounded-circle mb-3 mx-auto" width="80" height="80">
+                        <h5 class="card-title fw-bold">{{this.profile_info.firstName}} {{this.profile_info.lastName}}</h5>
+                        
+                        {{#if (gte this.totalRatings 1)}}
+                            <div class="average-stars-container my-2">
+                                <div class="stars-background">
+                                    <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
+                                </div>
+                                <div class="stars-foreground" style="width: {{calculateStarPercentage this.averageRating}}%;">
+                                    <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
+                                </div>
+                            </div>
+                            <p class="h5 fw-bold mb-1">{{formatNumber this.averageRating 1}}</p>
+                            <p class="text-muted small mt-auto">Based on {{this.totalRatings}} {{pluralize this.totalRatings 'rating' 'ratings'}}</p>
+                        {{else}}
+                            <p class="text-muted mt-auto pt-4">No feedback received yet.</p>
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
+        {{/each}}
+    {{else}}
+        <div class="col">
+            <p class="text-center text-muted">There are no counselors with feedback to display.</p>
+        </div>
+    {{/if}}
+</div>

@@ -1,40 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <title>{{ title }} | CounseLink</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} | CounseLink</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css">
+    <!-- Custom Admin Theme CSS -->
+    <style>
+        html[data-bs-theme="light"] {
+            --bs-primary: #3B82F6;
+            --bs-primary-rgb: 59, 130, 246;
+            --counselink-bg: #e0e5ec;
+            --counselink-text: #555;
+            --counselink-muted: #6c757d;
+            --counselink-card-bg: #e0e5ec;
+            --neumorphic-shadow-dark: #a3b1c6;
+            --neumorphic-shadow-light: #ffffff;
+        }
+
+        html[data-bs-theme="dark"] {
+            --bs-primary: #3B82F6;
+            --bs-primary-rgb: 59, 130, 246;
+            --bs-body-bg: #2c3344;
+            --bs-body-color: #d1d5db;
+            --counselink-bg: #2c3344;
+            --counselink-text: #d1d5db;
+            --counselink-muted: #9ca3af;
+            --counselink-card-bg: #2c3344;
+            --neumorphic-shadow-dark: #242a38;
+            --neumorphic-shadow-light: #343c50;
+        }
+
+        [data-bs-theme="dark"] .sidebar {
+            background-color: var(--counselink-bg) !important;
+            box-shadow: 9px 9px 16px var(--neumorphic-shadow-dark), -9px -9px 16px var(--neumorphic-shadow-light);
+        }
+        [data-bs-theme="dark"] .sidebar .nav-link { color: var(--counselink-muted); }
+        [data-bs-theme="dark"] .sidebar .nav-link.active, [data-bs-theme="dark"] .sidebar .nav-link:hover {
+            color: var(--bs-primary);
+        }
+        [data-bs-theme="dark"] .navbar-dark {
+            background-color: var(--counselink-bg) !important;
+            box-shadow: 9px 9px 16px var(--neumorphic-shadow-dark), -9px -9px 16px var(--neumorphic-shadow-light);
+        }
+        [data-bs-theme="dark"] .navbar-brand, [data-bs-theme="dark"] .nav-link {
+            color: var(--counselink-text) !important;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--counselink-bg);
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            width: 250px;
+            background-color: var(--counselink-bg);
+            box-shadow: 9px 9px 16px var(--neumorphic-shadow-dark), -9px -9px 16px var(--neumorphic-shadow-light);
+        }
+        /* Mobile Offcanvas Sidebar */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: -260px; /* Hidden by default */
+                z-index: 1045; /* Above backdrop */
+                transition: left 0.3s ease-in-out;
+            }
+            .sidebar.is-open {
+                left: 0; /* Slide in */
+            }
+        }
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: var(--counselink-muted);
+            padding: .65rem 1.5rem;
+            border-radius: 0.375rem;
+            margin: 0 1rem 0.25rem 1rem;
+            transition: all 0.2s ease;
+        }
+        .sidebar .nav-heading {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            padding: 1.5rem 1.5rem 0.5rem;
+        }
+        .sidebar .nav-link .fa {
+            width: 16px;
+            margin-right: 8px;
+        }
+        .sidebar .nav-link:hover {
+            color: var(--bs-primary);
+            transform: translateY(-2px);
+        }
+        .sidebar .nav-link.active {
+            color: var(--bs-primary);
+            background-color: var(--counselink-bg);
+            box-shadow: inset 4px 4px 8px var(--neumorphic-shadow-dark), inset -4px -4px 8px var(--neumorphic-shadow-light);
+        }
+        .navbar-brand {
+            padding-top: .75rem;
+            padding-bottom: .75rem;
+            font-size: 1.2rem;
+        }
+        .navbar .navbar-toggler {
+            top: .25rem;
+            right: 1rem;
+        }
+        .navbar {
+            background-color: var(--counselink-bg) !important;
+            box-shadow: 9px 9px 16px var(--neumorphic-shadow-dark), -9px -9px 16px var(--neumorphic-shadow-light);
+        }
+        .main-content {
+            margin-left: 250px;
+        }
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+                padding-top: 70px; /* Add padding to push content below the sticky header */
+            }
+        }
+        .card {
+            background: var(--counselink-card-bg);
+            border-radius: 20px;
+            border: none;
+            box-shadow: 9px 9px 16px var(--neumorphic-shadow-dark), -9px -9px 16px var(--neumorphic-shadow-light) !important;
+        }
+        .alert {
+            border-radius: 15px;
+        }
+
+        /* Theme Toggle Styles */
+        .theme-toggle-container { display: flex; align-items: center; gap: 0.5rem; color: var(--counselink-muted); }
+        .theme-toggle-container .fa-sun { color: #FACC15; }
+        [data-bs-theme="dark"] .theme-toggle-container .fa-moon { color: #818cf8; }
+        .theme-switch {
+            position: relative; display: inline-block; width: 48px; height: 24px;
+        }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: "\f185"; /* Sun icon */
+            font-family: "Font Awesome 5 Free"; font-weight: 900;
+            height: 16px; width: 16px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+            color: #FACC15;
+            display: flex; align-items: center; justify-content: center; font-size: 12px;
+        }
+        input:checked + .slider { background-color: #3B82F6; }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+            content: "\f186"; /* Moon icon */
+            color: #818cf8;
+        }
+        [data-bs-theme="dark"] .slider {
+            background-color: #4b5563;
+        }
+        [data-bs-theme="dark"] input:checked + .slider {
+            background-color: #3B82F6;
+        }
+
+        /* Bottom Navigation for Mobile */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--counselink-bg);
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1030;
+            padding: 0.5rem 0;
+        }
+        .bottom-nav .nav-link {
+            color: var(--counselink-muted);
+            text-align: center;
+            font-size: 0.75rem;
+            padding: 0.5rem 0.25rem;
+        }
+        .bottom-nav .nav-link i {
+            display: block;
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+        .bottom-nav .nav-link.active {
+            color: var(--bs-primary);
+            background-color: transparent;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-  <div class="flex min-h-screen">
-    <!-- Admin Sidebar -->
-    <div class="w-64 bg-white shadow-lg">
-        <div class="p-4 border-b flex justify-between items-center">
-            <a href="/dashboard" class="text-xl font-bold text-indigo-600">CounseLink</a>
+<body>
+    <header class="navbar navbar-dark sticky-top flex-md-nowrap p-0">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/dashboard">
+            <img src="/logo/counselink_logo.png" alt="CounseLink" height="30" class="me-2"> <strong>CounseLink</strong>
+        </a>
+        <button id="sidebar-toggle" class="navbar-toggler position-absolute d-lg-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-nav ms-auto">
+            <div class="d-flex align-items-center pe-3">
+                <!-- Theme Toggle -->
+                <div class="theme-toggle-container me-3">
+                    <i class="fas fa-sun"></i>
+                    <label class="theme-switch" for="theme-toggle-switch">
+                        <input type="checkbox" id="theme-toggle-switch" />
+                        <div class="slider round"></div>
+                    </label>
+                    <i class="fas fa-moon"></i>
+                </div>
+                <!-- User Dropdown -->
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="https://i.pravatar.cc/40?u={{user.user_id}}" alt="" width="32" height="32" class="rounded-circle me-2">
+                        <strong class="text-dark">{{user.profile_info.firstName}}</strong>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end text-small shadow border-0">
+                        <li><a class="dropdown-item" href="/settings">Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <nav class="py-4">
-            <a href="/dashboard" class="block px-6 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-800 {{#if (eq title 'Admin Dashboard')}}bg-gray-200 font-semibold text-gray-800{{/if}}">Dashboard</a>
-            <a href="/admin/users" class="block px-6 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-800 {{#if (eq title 'User Management')}}bg-gray-200 font-semibold text-gray-800{{/if}}">User Management</a>
-            <!-- <a href="/admin/reports" class="block px-6 py-3 text-gray-600 hover:bg-gray-100 hover:text-gray-800">Reports</a> -->
-        </nav>
-        <div class="absolute bottom-0 w-64 p-4 border-t">
-             <a href="/logout" class="block text-center bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm">Logout</a>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-lg-flex sidebar flex-column pt-2">
+                <div class="sidebar-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-heading">Menu</li>
+                        <li class="nav-item">
+                            <a class="nav-link {{#if (eq title 'Admin Dashboard')}}active{{/if}}" href="/dashboard">
+                                <i class="fa fa-home"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-heading">Management</li>
+                        <li class="nav-item">
+                            <a class="nav-link {{#if (eq title 'User Management')}}active{{/if}}" href="/admin/users">
+                                <i class="fa fa-users"></i> Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{#if (eq title 'Feedback Overview')}}active{{/if}}" href="/admin/feedback">
+                                <i class="fa fa-star"></i> Feedback
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Bottom Navigation Bar (Mobile Only) -->
+            <div class="bottom-nav d-lg-none">
+                <div class="container">
+                    <div class="row justify-content-around">
+                        <a class="nav-link col {{#if (eq title 'Admin Dashboard')}}active{{/if}}" href="/dashboard"><i class="fa fa-home"></i> Dashboard</a>
+                        <a class="nav-link col {{#if (eq title 'User Management')}}active{{/if}}" href="/admin/users"><i class="fa fa-users"></i> Management</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <!-- Backdrop for mobile sidebar -->
+            <div class="offcanvas-backdrop fade show d-lg-none" id="admin-sidebar-backdrop" style="display: none;"></div>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="pt-3 pb-2 mb-3">
+                    <h1 class="h2">{{title}}</h1>
+                </div>
+                {{#if success_msg}}<div class="alert alert-success">{{success_msg}}</div>{{/if}}
+                {{#if error_msg}}<div class="alert alert-danger">{{error_msg}}</div>{{/if}}
+                {{{body}}}
+            </main>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main class="flex-1">
-        <div class="p-8">
-            {{#if success_msg}}
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert"><p>{{success_msg}}</p></div>
-            {{/if}}
-            {{#if error_msg}}
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert"><p>{{error_msg}}</p></div>
-            {{/if}}
-            {{{ body }}}
-        </div>
-    </main>
-  </div>
+    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            const htmlElement = document.documentElement;
+
+            // Function to set the theme
+            const setTheme = (theme) => {
+                htmlElement.setAttribute('data-bs-theme', theme);
+                localStorage.setItem('theme', theme);
+                const themeToggle = document.getElementById('theme-toggle-switch');
+                if (themeToggle) {
+                    themeToggle.checked = theme === 'dark';
+                }
+            };
+
+            // Apply the saved theme on page load
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+
+            // Add event listener for the theme toggle
+            const themeToggle = document.getElementById('theme-toggle-switch');
+            if (themeToggle) {
+                themeToggle.addEventListener('change', () => {
+                    const newTheme = themeToggle.checked ? 'dark' : 'light';
+                    setTheme(newTheme);
+                    });
+                }
+
+                // Admin Sidebar Toggle Logic (similar to main.xian)
+                const adminSidebarToggle = document.getElementById('sidebar-toggle');
+                const adminSidebar = document.getElementById('sidebarMenu');
+                const adminBackdrop = document.getElementById('admin-sidebar-backdrop');
+
+                if (adminSidebarToggle) {
+                    adminSidebarToggle.addEventListener('click', () => {
+                        adminSidebar.classList.remove('d-none'); // Make it visible for transition
+                        adminSidebar.classList.toggle('is-open');
+                        adminBackdrop.style.display = adminSidebar.classList.contains('is-open') ? 'block' : 'none';
+                    });
+                    adminBackdrop.addEventListener('click', () => {
+                        adminSidebar.classList.remove('is-open');
+                        // No need to add d-none, the 'left: -260px' style will hide it
+                        adminBackdrop.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

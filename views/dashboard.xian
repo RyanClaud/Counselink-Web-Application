@@ -12,7 +12,7 @@
     {{#if (eq user.role 'student')}}
         <!-- Stat Cards -->
         <div class="row">
-            <div class="col-lg-4 col-md-6 mb-3">
+            <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card shadow-sm mb-3 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <i class="fas fa-hourglass-half fa-2x text-warning me-3"></i>
@@ -23,7 +23,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6 mb-3">
+            <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card shadow-sm mb-3 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <i class="fas fa-calendar-check fa-2x text-success me-3"></i>
@@ -34,7 +34,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-12 mb-3">
+            <div class="col-lg-4 col-md-12 mb-4">
                 <div class="card shadow-sm mb-3 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <i class="fas fa-check-circle fa-2x text-info me-3"></i>
@@ -51,7 +51,12 @@
         <h4 class="mt-4 mb-3">My Appointments</h4>
         {{#if appointments.length}}
             {{#each appointments}}
-            <div class="card appointment-card mb-3">
+            <div class="card appointment-card mb-4 
+                {{#if (eq this.status 'pending')}}appointment-card-pending{{/if}}
+                {{#if (eq this.status 'approved')}}appointment-card-approved{{/if}}
+                {{#if (eq this.status 'completed')}}appointment-card-completed{{/if}}
+                {{#if (eq this.status 'canceled')}}appointment-card-canceled{{/if}}
+            ">
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-lg-4 mb-2 mb-lg-0">
@@ -78,7 +83,7 @@
             </div>
             {{/each}}
         {{else}}
-            <div class="text-center p-5 bg-white rounded shadow-sm">
+            <div class="text-center p-5 card">
                 <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
                 <h5 class="mb-3">No Appointments Yet</h5>
                 <p class="text-muted">It looks like you haven't scheduled any appointments. <br>Taking the first step is easy.</p>
@@ -179,7 +184,7 @@
     {{#if (eq user.role 'admin')}}
         <div class="row">
             <div class="col-lg-3 col-md-6">
-                <div class="card shadow-sm mb-3 stat-card">
+                <div class="card mb-4 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <i class="fas fa-users fa-2x text-primary me-3"></i>
                         <div>
@@ -190,7 +195,7 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="card shadow-sm mb-3 stat-card">
+                <div class="card mb-4 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <i class="fas fa-user-tie fa-2x text-success me-3"></i>
                         <div>
@@ -201,7 +206,7 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="card shadow-sm mb-3 stat-card">
+                <div class="card mb-4 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <i class="fas fa-calendar-check fa-2x text-info me-3"></i>
                         <div>
@@ -212,7 +217,7 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="card shadow-sm mb-3 stat-card">
+                <div class="card mb-4 stat-card">
                     <div class="card-body d-flex align-items-center">
                         <i class="fas fa-hourglass-half fa-2x text-warning me-3"></i>
                         <div>
@@ -227,23 +232,23 @@
         <!-- Charts Section -->
         <div class="row mt-4">
             <div class="col-lg-6 mb-4 mb-lg-0">
-                <div class="card shadow-sm">
+                <div class="card">
                     <div class="card-body d-flex justify-content-center align-items-center" style="height: 350px;">
                         <canvas id="appointmentStatusChart"></canvas>
                     </div>
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="card shadow-sm">
+                <div class="card">
                     <div class="card-body d-flex justify-content-center align-items-center" style="height: 350px;">
-                        <canvas id="studentGenderChart"></canvas>
+                        <canvas id="appointmentsByMonthChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Recent Appointments Table -->
-        <div class="card mt-4 shadow-sm">
+        <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">Recent Appointments</h4>
                 <a href="/reports/appointments" class="btn btn-primary" target="_blank">Generate PDF Report</a>
@@ -285,18 +290,16 @@
 
     <style>
         .stat-card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            transition: all 0.2s ease-in-out;
         }
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+            box-shadow: var(--neumorphic-shadow-hover-dark), var(--neumorphic-shadow-hover-light) !important;
         }
         .appointment-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .appointment-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0.5rem 1rem rgba(var(--bs-primary-rgb), 0.1) !important;
+            border-left-width: 5px;
+            border-left-style: solid;
+            border-color: var(--bs-secondary-bg-subtle);
         }
     </style>
 
@@ -340,35 +343,41 @@
                 });
             }
 
-            // 2. Student Gender Chart (Pie)
-            const studentGenderCtx = document.getElementById('studentGenderChart');
-            if (studentGenderCtx) {
-                new Chart(studentGenderCtx, {
-                    type: 'pie',
+            // 2. Appointments by Month Chart (Line)
+            const appointmentsByMonthCtx = document.getElementById('appointmentsByMonthChart');
+            if (appointmentsByMonthCtx && chartData.appointmentsByMonth) {
+                new Chart(appointmentsByMonthCtx, {
+                    type: 'line',
                     data: {
-                        labels: chartData.studentGender.labels,
+                        labels: chartData.appointmentsByMonth.labels,
                         datasets: [{
-                            label: 'Sessions',
-                            data: chartData.studentGender.data,
-                            backgroundColor: [
-                                'rgba(59, 130, 246, 0.7)', // Male (Blue)
-                                'rgba(236, 72, 153, 0.7)', // Female (Pink)
-                                'rgba(16, 185, 129, 0.7)', // Other (Green)
-                                'rgba(156, 163, 175, 0.7)'  // Prefer not to say / Unknown (Gray)
-                            ],
-                            borderColor: '#fff',
-                            borderWidth: 2
+                            label: 'Appointments',
+                            data: chartData.appointmentsByMonth.data,
+                            fill: true,
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            tension: 0.3
                         }]
                     },
                     options: {
                         responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    // Ensure only whole numbers are shown on the y-axis
+                                    stepSize: 1,
+                                    callback: function(value) { if (Number.isInteger(value)) { return value; } },
+                                }
+                            }
+                        },
                         plugins: {
                             legend: {
-                                position: 'top',
+                                display: false
                             },
                             title: {
                                 display: true,
-                                text: 'Counseling Sessions by Student Gender'
+                                text: 'Appointments Over Last 6 Months'
                             }
                         }
                     }

@@ -75,33 +75,34 @@ export const dashboardPage = async (req, res) => {
           group: ['status']
       });
 
-      const appointmentsWithStudentGender = await Appointment.findAll({
-          include: [{
-              model: User,
-              as: 'student',
-              attributes: ['profile_info'],
-              required: true // Ensures we only get appointments with students
-          }]
+      // NEW: Appointments over time (last 6 months)
+      const appointmentsByMonth = await Appointment.findAll({
+          attributes: [
+              [sequelize.fn('DATE_FORMAT', sequelize.col('date_time'), '%Y-%m'), 'month'],
+              [sequelize.fn('COUNT', 'appointment_id'), 'count']
+          ],
+          where: {
+              date_time: {
+                  [Op.gte]: new Date(new Date().setMonth(new Date().getMonth() - 6))
+              }
+          },
+          group: ['month'],
+          order: [['month', 'ASC']],
+          raw: true
       });
-
-      const genderCounts = appointmentsWithStudentGender.reduce((acc, appt) => {
-          const gender = appt.student?.profile_info?.gender || 'Unknown';
-          acc[gender] = (acc[gender] || 0) + 1;
-          return acc;
-      }, {});
 
       const chartData = {
           appointmentStatus: {
               labels: appointmentStatusData.map(item => item.status),
               data: appointmentStatusData.map(item => item.get('count'))
           },
-          studentGender: {
-              labels: Object.keys(genderCounts),
-              data: Object.values(genderCounts)
+          appointmentsByMonth: {
+              labels: appointmentsByMonth.map(item => item.month),
+              data: appointmentsByMonth.map(item => item.count)
           }
       };
 
-      return res.render("dashboard", { title: "Admin Dashboard", user: req.user, stats: { studentCount, counselorCount, appointmentCount, pendingCount }, recentAppointments, chartData, layout: 'layouts/main' });
+      return res.render("dashboard", { title: "Admin Dashboard", user: req.user, stats: { studentCount, counselorCount, appointmentCount, pendingCount }, recentAppointments, chartData, layout: 'layouts/admin' });
     }
 
     if (req.user.role === 'counselor') {

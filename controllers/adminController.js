@@ -22,7 +22,7 @@ export const renderUserManagementPage = async (req, res) => {
       },
       order: [['role', 'ASC'], ['username', 'ASC']]
     });
-    res.render('admin/users', { title: 'User Management', user: req.user, users, layout: 'layouts/main' });
+    res.render('admin/users', { title: 'User Management', user: req.user, users, layout: 'layouts/admin' });
   } catch (error) {
     console.error('Failed to fetch users:', error);
     req.flash('error_msg', 'Failed to load user management page.');
@@ -48,14 +48,14 @@ export const renderFeedbackOverview = async (req, res) => {
                 [sequelize.fn('AVG', sequelize.col('receivedFeedback.rating')), 'averageRating'],
                 [sequelize.fn('COUNT', sequelize.col('receivedFeedback.rating')), 'totalRatings']
             ],
-            group: ['User.user_id'],
+            group: ['"Users"."user_id"'],
             order: [[sequelize.literal('averageRating'), 'DESC NULLS LAST']],
             subQuery: false
         });
 
         res.render('admin/feedback', {
             title: 'Feedback Overview',
-            layout: 'layouts/main',
+            layout: 'layouts/admin',
             counselors: counselorsWithFeedback
         });
     } catch (error) {
@@ -112,7 +112,7 @@ export const renderAddUserPage = (req, res) => {
     res.render('admin/add-user', {
         title: 'Add New User',
         user: req.user,
-        layout: 'layouts/main'
+        layout: 'layouts/admin'
     });
 };
 

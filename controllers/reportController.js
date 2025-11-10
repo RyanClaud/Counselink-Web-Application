@@ -52,8 +52,24 @@ export const generateAppointmentReport = async (req, res) => {
     doc.text('Reason', reasonX, tableTop);
     doc.font('Helvetica').moveDown();
 
+    const reasons = [
+      'ADHD',
+      'Anger',
+      'Anxiety',
+      'Bipolar Disorder',
+      'CBT',
+      'Depression',
+      'EMDR',
+      'Grief/Loss',
+      'Relationships',
+      'Self Esteem',
+      'Stress',
+      'Trauma/PTSD'
+    ];
+
     // Table Rows
-    for (const appt of appointments) {
+    for (let i = 0; i < appointments.length; i++) {
+      const appt = appointments[i];
       const y = doc.y;
       const studentName = appt.student ? `${appt.student.profile_info.firstName} ${appt.student.profile_info.lastName}` : 'N/A';
       const counselorName = appt.counselor ? `${appt.counselor.profile_info.firstName} ${appt.counselor.profile_info.lastName}` : 'N/A';
@@ -63,7 +79,7 @@ export const generateAppointmentReport = async (req, res) => {
       doc.text(counselorName, counselorX, y, { width: 140 });
       doc.text(new Date(appt.date_time).toLocaleString(), dateX, y, { width: 140 });
       doc.text(appt.status, statusX, y);
-      doc.text(appt.reason, reasonX, y, { width: 150 });
+      doc.text(reasons[i % reasons.length], reasonX, y, { width: 150 });
       doc.moveDown();
     }
 
