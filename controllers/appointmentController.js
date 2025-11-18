@@ -7,7 +7,29 @@ import { Op } from 'sequelize';
  */
 export const renderNewAppointmentPage = async (req, res) => {
   try {
-    const counselors = await User.findAll({ where: { role: 'counselor' } });
+    const sequelize = (await import('../config/database.js')).default;
+    
+    // Get counselors with their average ratings
+    const counselors = await User.findAll({ 
+      where: { role: 'counselor' },
+      attributes: [
+        'user_id',
+        'username',
+        'email',
+        'profile_info',
+        [sequelize.fn('AVG', sequelize.col('receivedFeedback.rating')), 'avgRating'],
+        [sequelize.fn('COUNT', sequelize.col('receivedFeedback.feedback_id')), 'feedbackCount']
+      ],
+      include: [{
+        model: Feedback,
+        as: 'receivedFeedback',
+        attributes: [],
+        required: false
+      }],
+      group: ['User.user_id', 'User.username', 'User.email', 'User.profile_info'],
+      raw: true
+    });
+    
     res.render('appointments/new', {
       title: 'Book Appointment',
       counselors,

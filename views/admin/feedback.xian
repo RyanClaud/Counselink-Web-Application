@@ -19,16 +19,11 @@
                         <img src="https://i.pravatar.cc/80?u={{this.user_id}}" alt="Profile Picture" class="rounded-circle mb-3 mx-auto" width="80" height="80">
                         <h5 class="card-title fw-bold">{{this.profile_info.firstName}} {{this.profile_info.lastName}}</h5>
                         
-                        {{#if (gte this.totalRatings 1)}}
-                            <div class="average-stars-container my-2">
-                                <div class="stars-background">
-                                    <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
-                                </div>
-                                <div class="stars-foreground" style="width: {{calculateStarPercentage this.averageRating}}%;">
-                                    <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
-                                </div>
+                        {{#if this.averageRating}}
+                            <div class="mb-3">
+                                {{{starRating this.averageRating}}}
                             </div>
-                            <p class="h5 fw-bold mb-1">{{formatNumber this.averageRating 1}}</p>
+                            <p class="h5 fw-bold mb-1">{{formatNumber this.averageRating 1}} / 5.0</p>
                             <p class="text-muted small mt-auto">Based on {{this.totalRatings}} {{pluralize this.totalRatings 'rating' 'ratings'}}</p>
                         {{else}}
                             <p class="text-muted mt-auto pt-4">No feedback received yet.</p>

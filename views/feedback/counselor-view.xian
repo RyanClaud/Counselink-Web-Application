@@ -46,7 +46,7 @@
                                 <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
                             </div>
                         </div>
-                        <small class="text-muted">{{formatDate this.createdAt}}</small>
+                        <small class="text-muted">{{formatDateTime this.createdAt}}</small>
                     </div>
                     {{#if this.comment}}
                         <p class="card-text fst-italic">"{{this.comment}}"</p>

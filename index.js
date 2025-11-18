@@ -103,6 +103,10 @@ hbs.registerHelper('gte', function (a, b) {
     return a >= b;
 });
 
+hbs.registerHelper('gt', function (a, b) {
+    return a > b;
+});
+
 // Register formatting and iteration helpers
 hbs.registerHelper('toFixed', function (number, digits) {
     return Number(number).toFixed(digits);
@@ -144,8 +148,68 @@ hbs.registerHelper('formatDate', function (date) {
     return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 });
 
+hbs.registerHelper('timeAgo', function (date) {
+    const now = new Date();
+    const past = new Date(date);
+    const diffMs = now - past;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+});
+
+// Register helper for short date/time format
+hbs.registerHelper('formatDateTime', function (date) {
+    if (!date) return '';
+    const d = new Date(date);
+    const options = { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit'
+    };
+    return d.toLocaleDateString('en-US', options);
+});
+
 hbs.registerHelper('add', function (a, b) {
     return a + b;
+});
+
+// Register star rating helper
+hbs.registerHelper('starRating', function (rating) {
+    if (!rating || rating === 'N/A') return '<span class="text-muted">No ratings yet</span>';
+    
+    const numRating = parseFloat(rating);
+    const fullStars = Math.floor(numRating);
+    const hasHalfStar = numRating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    
+    let stars = '';
+    
+    // Full stars
+    for (let i = 0; i < fullStars; i++) {
+        stars += '<i class="fas fa-star text-warning"></i>';
+    }
+    
+    // Half star
+    if (hasHalfStar) {
+        stars += '<i class="fas fa-star-half-alt text-warning"></i>';
+    }
+    
+    // Empty stars
+    for (let i = 0; i < emptyStars; i++) {
+        stars += '<i class="far fa-star text-warning"></i>';
+    }
+    
+    stars += ` <span class="text-muted small">(${numRating.toFixed(1)})</span>`;
+    
+    return new hbs.handlebars.SafeString(stars);
 });
 
 app.set("views", path.join(__dirname, "views"));

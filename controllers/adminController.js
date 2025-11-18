@@ -35,25 +35,41 @@ export const renderUserManagementPage = async (req, res) => {
  */
 export const renderFeedbackOverview = async (req, res) => {
     try {
-        const counselorsWithFeedback = await User.findAll({
+        // Get all counselors
+        const allCounselors = await User.findAll({
             where: { role: 'counselor' },
-            include: [{
-                model: Feedback,
-                as: 'receivedFeedback',
-                attributes: [],
-                required: false // This ensures a LEFT JOIN
-            }],
-            attributes: [
-                'user_id',
-                'profile_info',
-                [sequelize.fn('AVG', sequelize.col('receivedFeedback.rating')), 'averageRating'],
-                [sequelize.fn('COUNT', sequelize.col('receivedFeedback.rating')), 'totalRatings']
-            ],
-            group: ['User.user_id', 'User.profile_info'],
-            order: sequelize.options.dialect === 'mysql'
-                ? [[sequelize.literal('averageRating IS NULL, averageRating DESC')]]
-                : [[sequelize.literal('averageRating'), 'DESC NULLS LAST']]
+            attributes: ['user_id', 'profile_info']
         });
+
+        // Get feedback stats for each counselor
+        const counselorsWithFeedback = await Promise.all(
+            allCounselors.map(async (counselor) => {
+                const feedbackStats = await Feedback.findOne({
+                    where: { counselor_id: counselor.user_id },
+                    attributes: [
+                        [sequelize.fn('AVG', sequelize.col('rating')), 'averageRating'],
+                        [sequelize.fn('COUNT', sequelize.col('feedback_id')), 'totalRatings']
+                    ],
+                    raw: true
+                });
+
+                return {
+                    user_id: counselor.user_id,
+                    profile_info: counselor.profile_info,
+                    averageRating: feedbackStats?.averageRating || null,
+                    totalRatings: feedbackStats?.totalRatings || 0
+                };
+            })
+        );
+
+        // Sort by average rating (highest first), with null ratings at the end
+        counselorsWithFeedback.sort((a, b) => {
+            if (a.averageRating === null) return 1;
+            if (b.averageRating === null) return -1;
+            return b.averageRating - a.averageRating;
+        });
+
+        console.log('Counselors with feedback:', JSON.stringify(counselorsWithFeedback, null, 2));
 
         res.render('admin/feedback', {
             title: 'Feedback Overview',
@@ -62,6 +78,8 @@ export const renderFeedbackOverview = async (req, res) => {
         });
     } catch (error) {
         console.error('Failed to load feedback overview:', error);
+        console.error('Error details:', error.stack);
+        req.flash('error_msg', 'Failed to load feedback overview.');
         res.redirect('/dashboard');
     }
 };
@@ -125,16 +143,56 @@ export const renderDailyReport = async (req, res) => {
 };
 
 /**
- * Deletes a user.
+ * Deactivates a user account (soft delete).
  */
-export const deleteUser = async (req, res) => {
+export const deactivateUser = async (req, res) => {
     try {
-        await User.destroy({ where: { user_id: req.params.id, role: { [Op.ne]: 'admin' } } });
-        req.flash('success_msg', 'User has been deleted successfully.');
+        const userToDeactivate = await User.findByPk(req.params.id);
+
+        if (!userToDeactivate) {
+            req.flash('error_msg', 'User not found.');
+            return res.redirect('/admin/users');
+        }
+
+        if (userToDeactivate.role === 'admin') {
+            req.flash('error_msg', 'Cannot deactivate admin accounts.');
+            return res.redirect('/admin/users');
+        }
+
+        userToDeactivate.is_active = false;
+        userToDeactivate.deactivated_at = new Date();
+        await userToDeactivate.save();
+
+        req.flash('success_msg', `Account for ${userToDeactivate.email} has been deactivated.`);
         res.redirect('/admin/users');
     } catch (error) {
-        console.error('Failed to delete user:', error);
-        req.flash('error_msg', 'Failed to delete user.');
+        console.error('Failed to deactivate user:', error);
+        req.flash('error_msg', 'Failed to deactivate user.');
+        res.redirect('/admin/users');
+    }
+};
+
+/**
+ * Reactivates a deactivated user account.
+ */
+export const reactivateUser = async (req, res) => {
+    try {
+        const userToReactivate = await User.findByPk(req.params.id);
+
+        if (!userToReactivate) {
+            req.flash('error_msg', 'User not found.');
+            return res.redirect('/admin/users');
+        }
+
+        userToReactivate.is_active = true;
+        userToReactivate.deactivated_at = null;
+        await userToReactivate.save();
+
+        req.flash('success_msg', `Account for ${userToReactivate.email} has been reactivated.`);
+        res.redirect('/admin/users');
+    } catch (error) {
+        console.error('Failed to reactivate user:', error);
+        req.flash('error_msg', 'Failed to reactivate user.');
         res.redirect('/admin/users');
     }
 };

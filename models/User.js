@@ -60,6 +60,15 @@ User.init({
     type: DataTypes.DATE,
     allowNull: true,
   },
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: true, // Allow null temporarily for backward compatibility
+  },
+  deactivated_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 }, {
   sequelize,
   modelName: 'User',

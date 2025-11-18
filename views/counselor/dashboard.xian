@@ -1,5 +1,46 @@
+<link rel="stylesheet" href="/css/notifications.css">
+
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">Counselor Dashboard</h1>
+
+    <!-- Notifications Section -->
+    {{#if notifications.length}}
+    <div class="notification-section bg-blue-50 border-l-4 border-blue-500 rounded-lg shadow-md p-4 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-bell text-blue-500 text-2xl"></i>
+            </div>
+            <div class="ml-3 flex-1">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-lg font-semibold text-blue-800">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        You have {{notifications.length}} new notification{{#if (gt notifications.length 1)}}s{{/if}}
+                    </h3>
+                    <form action="/notifications/mark-read" method="POST" class="inline">
+                        <button type="submit" class="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                            Mark all as read
+                        </button>
+                    </form>
+                </div>
+                <div class="space-y-2">
+                    {{#each notifications}}
+                    <div class="notification-item bg-white rounded-md p-3 border border-blue-200 hover:border-blue-400 transition-colors">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mr-3">
+                                <i class="fas fa-info-circle text-blue-500"></i>
+                            </div>
+                            <div class="flex-1 flex items-start justify-between">
+                                <p class="text-sm text-gray-700 flex-1">{{this.message}}</p>
+                                <span class="text-xs text-gray-500 ml-3 whitespace-nowrap">{{timeAgo this.createdAt}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/if}}
 
     <!-- Appointments Table -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
@@ -13,6 +54,7 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booked On</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -21,7 +63,7 @@
                         {{#each appointments}}
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{this.student.username}}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{this.date_time}}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{formatDateTime this.date_time}}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                         {{#if (eq this.status 'approved')}} bg-green-100 text-green-800 {{/if}}
@@ -31,6 +73,7 @@
                                         {{this.status}}
                                     </span>
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{formatDateTime this.createdAt}}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     {{#if (eq this.status 'pending')}}
                                         <a href="/appointments/{{this.appointment_id}}/approve" class="text-indigo-600 hover:text-indigo-900">Approve</a>
@@ -41,7 +84,7 @@
                         {{/each}}
                     {{else}}
                         <tr>
-                            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">You have no assigned appointments.</td>
+                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">You have no assigned appointments.</td>
                         </tr>
                     {{/if}}
                 </tbody>

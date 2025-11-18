@@ -27,7 +27,7 @@
             --neumorphic-text: #d1d5db;
         }
         [data-bs-theme="dark"] .text-primary, [data-bs-theme="dark"] a.text-primary {
-            color: #60a5fa !important;
+            color: #4a7c2c !important;
         }
         [data-bs-theme="dark"] .form-control::placeholder {
             color: #6b7280;
@@ -75,7 +75,12 @@
             box-shadow: inset 5px 5px 10px var(--neumorphic-shadow-dark), inset -5px -5px 10px var(--neumorphic-shadow-light) !important;
         }
         .text-primary, a.text-primary {
-            color: #3B82F6 !important;
+            color: #2d5016 !important;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2d5016 0%, #1e3a8a 100%);
+            color: white;
         }
         .text-muted {
             color: var(--neumorphic-text) !important;
@@ -125,7 +130,7 @@
             position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
             background-color: white; transition: .4s; border-radius: 50%;
         }
-        input:checked + .slider { background-color: #3B82F6; }
+        input:checked + .slider { background-color: #2d5016; }
         input:checked + .slider:before { transform: translateX(24px); }
     </style>
 </head>

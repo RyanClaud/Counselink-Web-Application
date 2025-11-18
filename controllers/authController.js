@@ -37,11 +37,30 @@ export const forgotPasswordPage = (req, res) => res.render("forgotpassword", { t
 export const dashboardPage = async (req, res) => {
   try {
     if (req.user.role === 'student') {
-      // Use a direct query for maximum reliability.
+      // Get appointments with counselor ratings
       const allAppointments = await Appointment.findAll({
         where: { student_id: req.user.user_id },
-        include: ['counselor', 'Feedback'],
-        order: [['date_time', 'DESC']]
+        include: [
+          {
+            model: User,
+            as: 'counselor',
+            attributes: ['user_id', 'username', 'profile_info'],
+            include: [{
+              model: Feedback,
+              as: 'receivedFeedback',
+              attributes: []
+            }]
+          },
+          'Feedback'
+        ],
+        attributes: {
+          include: [
+            [sequelize.fn('AVG', sequelize.col('counselor.receivedFeedback.rating')), 'counselorAvgRating']
+          ]
+        },
+        group: ['Appointment.appointment_id', 'counselor.user_id', 'Feedback.feedback_id'],
+        order: [['date_time', 'DESC']],
+        subQuery: false
       }); 
 
       // Use direct database queries for stats for maximum reliability
@@ -63,38 +82,90 @@ export const dashboardPage = async (req, res) => {
       const counselorCount = await User.count({ where: { role: 'counselor' } });
       const appointmentCount = await Appointment.count();
       const pendingCount = await Appointment.count({ where: { status: 'pending' } });
-      const recentAppointments = await Appointment.findAll({
-        limit: 10,
-        order: [['date_time', 'DESC']],
-        include: ['student', 'counselor']
+      const completedCount = await Appointment.count({ where: { status: 'completed' } });
+      const canceledCount = await Appointment.count({ where: { status: 'canceled' } });
+      const lockedAccountsCount = await User.count({ where: { is_locked: true } });
+      
+      // Calculate completion rate
+      const totalFinalized = completedCount + canceledCount;
+      const completionRate = totalFinalized > 0 ? ((completedCount / totalFinalized) * 100).toFixed(1) : 0;
+      
+      // Get average rating across all counselors
+      const avgRatingResult = await Feedback.findOne({
+        attributes: [[sequelize.fn('AVG', sequelize.col('rating')), 'avgRating']],
+        raw: true
       });
+      const averageRating = avgRatingResult?.avgRating ? parseFloat(avgRatingResult.avgRating).toFixed(1) : 'N/A';
+      
+      // Get feedback count
+      const feedbackCount = await Feedback.count();
+      const feedbackRate = completedCount > 0 ? ((feedbackCount / completedCount) * 100).toFixed(1) : 0;
 
       // --- Data for Charts ---
+      const isPostgres = sequelize.options.dialect === 'postgres';
+      const isMysql = sequelize.options.dialect === 'mysql';
+
       const appointmentStatusData = await Appointment.findAll({
           attributes: ['status', [sequelize.fn('COUNT', sequelize.col('status')), 'count']],
           group: ['status']
       });
 
-      // Appointments over time (last 6 months) - Made database-agnostic
-      // Use DATE_TRUNC for postgres, DATE_FORMAT for mysql
-      const isPostgres = sequelize.options.dialect === 'postgres';
-      const isMysql = sequelize.options.dialect === 'mysql';
-      const appointmentsByMonth = await Appointment.findAll({
-          attributes: [
-              isPostgres
-                  ? [sequelize.fn('TO_CHAR', sequelize.col('date_time'), 'YYYY-MM'), 'month']
-                  : [sequelize.fn('DATE_FORMAT', sequelize.col('date_time'), '%Y-%m'), 'month'],
-              [sequelize.fn('COUNT', 'appointment_id'), 'count']
-          ],
+      // Analyze student issues/problems from appointment reasons
+      const allAppointments = await Appointment.findAll({
+          attributes: ['reason'],
           where: {
-              date_time: {
-                  [Op.gte]: new Date(new Date().setMonth(new Date().getMonth() - 6))
-              }
+              reason: { [Op.ne]: null }
           },
-          group: ['month'],
-          order: [['month', 'ASC']],
           raw: true
       });
+
+      // Categorize issues based on keywords in the reason
+      const issueCategories = {
+          'Academic Stress': ['academic', 'study', 'exam', 'test', 'grade', 'school', 'homework', 'assignment', 'class', 'course', 'failing'],
+          'Mental Health': ['anxiety', 'depression', 'stress', 'mental', 'emotional', 'sad', 'worried', 'overwhelmed', 'burnout', 'panic'],
+          'Family Issues': ['family', 'parent', 'home', 'sibling', 'mother', 'father', 'domestic'],
+          'Relationship': ['relationship', 'boyfriend', 'girlfriend', 'friend', 'breakup', 'dating', 'love', 'partner'],
+          'Career/Future': ['career', 'future', 'job', 'work', 'internship', 'graduation', 'college', 'university'],
+          'Personal Issues': ['personal', 'self', 'confidence', 'identity', 'self-esteem', 'lonely', 'alone'],
+          'Financial': ['financial', 'money', 'tuition', 'scholarship', 'allowance', 'budget'],
+          'Health': ['health', 'sick', 'illness', 'medical', 'physical', 'sleep', 'eating'],
+          'Social': ['social', 'peer', 'bullying', 'harassment', 'discrimination', 'friends'],
+          'Other': []
+      };
+
+      const issueCounts = {};
+      Object.keys(issueCategories).forEach(category => {
+          issueCounts[category] = 0;
+      });
+
+      // Categorize each appointment reason
+      allAppointments.forEach(appointment => {
+          const reason = appointment.reason.toLowerCase();
+          let categorized = false;
+
+          for (const [category, keywords] of Object.entries(issueCategories)) {
+              if (category === 'Other') continue;
+              
+              for (const keyword of keywords) {
+                  if (reason.includes(keyword)) {
+                      issueCounts[category]++;
+                      categorized = true;
+                      break;
+                  }
+              }
+              if (categorized) break;
+          }
+
+          if (!categorized) {
+              issueCounts['Other']++;
+          }
+      });
+
+      // Filter out categories with 0 count and sort by count
+      const studentIssues = Object.entries(issueCounts)
+          .filter(([_, count]) => count > 0)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 8); // Top 8 issues
 
       // --- NEW: Data for Feedback Charts ---
       const counselorRatings = await User.findAll({
@@ -127,9 +198,9 @@ export const dashboardPage = async (req, res) => {
               labels: appointmentStatusData.map(item => item.status),
               data: appointmentStatusData.map(item => item.get('count'))
           },
-          appointmentsByMonth: {
-              labels: appointmentsByMonth.map(item => item.month),
-              data: appointmentsByMonth.map(item => item.count)
+          studentIssues: {
+              labels: studentIssues.map(item => item[0]),
+              data: studentIssues.map(item => item[1])
           },
           counselorRatings: {
               labels: counselorRatings.map(c => `${c['profile_info.firstName']} ${c['profile_info.lastName']}`),
@@ -141,7 +212,92 @@ export const dashboardPage = async (req, res) => {
           }
       };
 
-      return res.render("dashboard", { title: "Admin Dashboard", user: req.user, stats: { studentCount, counselorCount, appointmentCount, pendingCount }, recentAppointments, chartData, layout: 'layouts/admin' });
+      // Get top performing counselors using a simpler approach
+      let topCounselors = [];
+      try {
+        const allCounselors = await User.findAll({
+          where: { role: 'counselor' },
+          attributes: ['user_id', 'profile_info']
+        });
+
+        topCounselors = await Promise.all(
+          allCounselors.map(async (counselor) => {
+            const appointmentCount = await Appointment.count({
+              where: { counselor_id: counselor.user_id }
+            });
+
+            const avgRatingResult = await Feedback.findOne({
+              where: { counselor_id: counselor.user_id },
+              attributes: [[sequelize.fn('AVG', sequelize.col('rating')), 'avgRating']],
+              raw: true
+            });
+
+            return {
+              user_id: counselor.user_id,
+              profile_info: counselor.profile_info,
+              totalAppointments: appointmentCount,
+              avgRating: avgRatingResult?.avgRating || null
+            };
+          })
+        );
+
+        // Sort by total appointments (highest first)
+        topCounselors.sort((a, b) => b.totalAppointments - a.totalAppointments);
+        
+        // Take top 5
+        topCounselors = topCounselors.slice(0, 5);
+
+        console.log('Top counselors:', JSON.stringify(topCounselors, null, 2));
+      } catch (error) {
+        console.error('Error fetching top counselors:', error);
+        console.error('Error stack:', error.stack);
+        topCounselors = [];
+      }
+
+      // Get recent activity (last 5 appointments)
+      const recentActivity = await Appointment.findAll({
+        limit: 5,
+        order: [['createdAt', 'DESC']],
+        include: ['student', 'counselor']
+      });
+
+      // Get recent appointments for the table (last 10)
+      const recentAppointments = await Appointment.findAll({
+        limit: 10,
+        order: [['date_time', 'DESC']],
+        include: ['student', 'counselor']
+      });
+
+      // Get locked accounts
+      const lockedAccounts = await User.findAll({
+        where: { is_locked: true },
+        attributes: ['user_id', 'email', 'profile_info', 'role'],
+        limit: 5
+      });
+
+      return res.render("dashboard", { 
+        title: "Admin Dashboard", 
+        user: req.user, 
+        stats: { 
+          studentCount, 
+          counselorCount, 
+          appointmentCount, 
+          pendingCount,
+          completedCount,
+          canceledCount,
+          lockedAccountsCount,
+          completionRate,
+          averageRating,
+          feedbackCount,
+          feedbackRate
+        }, 
+        recentAppointments, 
+        chartData,
+        topCounselors,
+        recentActivity,
+        lockedAccounts,
+        layout: 'layouts/admin' 
+      });
     }
 
     if (req.user.role === 'counselor') {
@@ -171,8 +327,9 @@ export const dashboardPage = async (req, res) => {
     res.render("dashboard", { title: "Dashboard", user: req.user, layout: 'layouts/main' });
   } catch (error) {
     console.error("Dashboard Error:", error);
-    req.flash('error_msg', 'Could not load the dashboard.');
-    res.render("dashboard", { title: "Dashboard", user: req.user, appointments: [], layout: 'layouts/main' });
+    console.error("Error stack:", error.stack);
+    req.flash('error_msg', 'Could not load the dashboard. Error: ' + error.message);
+    res.render("dashboard", { title: "Dashboard", user: req.user, appointments: [], stats: {}, layout: 'layouts/main' });
   }
 };
 
@@ -191,6 +348,12 @@ export const loginUser = async (req, res) => {
     if (!user) {
       req.flash("error_msg", "Invalid email or password.");
       req.flash("login_error", "true"); // Used for CSS animation
+      return res.redirect("/login");
+    }
+
+    // Check if account is deactivated (only if column exists)
+    if (user.is_active !== undefined && !user.is_active) {
+      req.flash("error_msg", "Your account has been deactivated. Please contact an administrator.");
       return res.redirect("/login");
     }
 

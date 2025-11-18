@@ -20,6 +20,7 @@
                         <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="student">Students</button>
                         <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="counselor">Counselors</button>
                         <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="locked">Locked</button>
+                        <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="inactive">Inactive</button>
                     </div>
                 </div>
             </div>
@@ -35,6 +36,7 @@
                             <th>Contact</th>
                             <th>Role</th>
                             <th>Status</th>
+                            <th>Joined Date</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -64,24 +66,42 @@
                             <td>
                                 {{#if this.is_locked}}
                                     <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis"><i class="fas fa-lock me-1"></i> Locked</span>
+                                {{else if (not this.is_active)}}
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis"><i class="fas fa-ban me-1"></i> Inactive</span>
                                 {{else}}
                                     <span class="badge rounded-pill bg-success-subtle text-success-emphasis"><i class="fas fa-check-circle me-1"></i> Active</span>
                                 {{/if}}
                             </td>
-                            <td class="text-center">
-                                {{#if this.is_locked}}
-                                    <form action="/admin/users/{{this.user_id}}/unlock" method="POST">
-                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Unlock User">
-                                            <i class="fas fa-unlock me-1"></i> Unlock
-                                        </button>
-                                    </form>
-                                {{else}}
-                                    <form action="/admin/users/{{this.user_id}}/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Delete User">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
+                            <td>
+                                <small class="text-muted">{{formatDateTime this.createdAt}}</small>
+                                {{#if this.deactivated_at}}
+                                    <br><small class="text-danger"><i class="fas fa-ban"></i> {{formatDateTime this.deactivated_at}}</small>
                                 {{/if}}
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex gap-2 justify-content-center">
+                                    {{#if this.is_locked}}
+                                        <form action="/admin/users/{{this.user_id}}/unlock" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Unlock User">
+                                                <i class="fas fa-unlock me-1"></i> Unlock
+                                            </button>
+                                        </form>
+                                    {{/if}}
+                                    
+                                    {{#if this.is_active}}
+                                        <form action="/admin/users/{{this.user_id}}/deactivate" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to deactivate this user? They will not be able to log in.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Deactivate User">
+                                                <i class="fas fa-ban me-1"></i> Deactivate
+                                            </button>
+                                        </form>
+                                    {{else}}
+                                        <form action="/admin/users/{{this.user_id}}/reactivate" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivate User">
+                                                <i class="fas fa-check-circle me-1"></i> Reactivate
+                                            </button>
+                                        </form>
+                                    {{/if}}
+                                </div>
                             </td>
                         </tr>
                         {{/each}}
@@ -145,6 +165,8 @@
                     matchesFilter = true;
                 } else if (activeFilter === 'locked') {
                     matchesFilter = status.includes('locked');
+                } else if (activeFilter === 'inactive') {
+                    matchesFilter = status.includes('inactive');
                 } else {
                     matchesFilter = role.includes(activeFilter);
                 }

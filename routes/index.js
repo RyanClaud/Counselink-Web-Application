@@ -47,7 +47,8 @@ import {
 } from "../controllers/appointmentController.js";
 import {
     renderUserManagementPage,
-    deleteUser,
+    deactivateUser,
+    reactivateUser,
     renderFeedbackOverview,
     unlockUser,
     renderAddUserPage,
@@ -111,7 +112,8 @@ router.post("/records/:appointment_id", protect(['counselor']), saveRecord);
 
 // Admin routes (protected)
 router.get("/admin/users", protect(['admin']), loadUserNotifications, renderUserManagementPage);
-router.post("/admin/users/:id/delete", protect(['admin']), deleteUser);
+router.post("/admin/users/:id/deactivate", protect(['admin']), deactivateUser);
+router.post("/admin/users/:id/reactivate", protect(['admin']), reactivateUser);
 router.post("/admin/users/:id/unlock", protect(['admin']), unlockUser);
 router.get("/admin/feedback", protect(['admin']), renderFeedbackOverview);
 router.get("/admin/users/add", protect(['admin']), renderAddUserPage);
